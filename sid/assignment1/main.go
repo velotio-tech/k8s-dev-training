@@ -9,32 +9,30 @@ import (
 
 func main() {
 	var err error
-	clientset := client.NewK8sGo()
-	v1Client := clientset.CoreV1()
-
+	podsGoClient := client.NewPodsK8sGo(metav1.NamespaceDefault)
 	listOptions := metav1.ListOptions{}
 
 	// Client Go
 	// Create
-	err = pod.CreatePod(v1Client, "nginx-pod", "nginx")
+	err = pod.CreatePod(podsGoClient, "nginx-pod", "nginx")
 	if err != nil {
 		fmt.Println("Failed to create pod cuz", err)
 	}
 
 	// Get
-	err = pod.GetPods(v1Client, listOptions)
+	err = pod.GetPods(podsGoClient, listOptions)
 	if err != nil {
 		fmt.Println("Error getting pods", err)
 	}
 
-	// Update Multiple
-	err = pod.UpdatePods(v1Client, listOptions, map[string]string{"Hello": "World"})
+	// Update
+	err = pod.UpdatePods(podsGoClient, listOptions, map[string]string{"Hello": "World"})
 	if err != nil {
 		fmt.Println("Failed to update pods cuz", err)
 	}
 
-	// Delete Multiple
-	err = pod.DeletePods(v1Client, listOptions)
+	// Delete
+	err = pod.DeletePods(podsGoClient, listOptions)
 	if err != nil {
 		fmt.Println("Error getting pods", err)
 	}

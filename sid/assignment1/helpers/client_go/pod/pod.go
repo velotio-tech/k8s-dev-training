@@ -8,8 +8,8 @@ import (
 	clientv1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-func GetPods(v1Client clientv1.CoreV1Interface, options metav1.ListOptions) error {
-	pods, err := v1Client.Pods("default").List(context.TODO(), options)
+func GetPods(podsGoClient clientv1.PodInterface, options metav1.ListOptions) error {
+	pods, err := podsGoClient.List(context.TODO(), options)
 
 	if err != nil {
 		return err
@@ -22,31 +22,24 @@ func GetPods(v1Client clientv1.CoreV1Interface, options metav1.ListOptions) erro
 	return nil
 }
 
-func DeletePods(v1Client clientv1.CoreV1Interface, listOptions metav1.ListOptions) error {
-	return v1Client.Pods("default").DeleteCollection(
-		context.TODO(), *metav1.NewDeleteOptions(int64(0)), listOptions)
+func DeletePods(podsGoClient clientv1.PodInterface, listOptions metav1.ListOptions) error {
+	return podsGoClient.DeleteCollection(context.TODO(), *metav1.NewDeleteOptions(int64(0)), listOptions)
 }
 
-func CreatePod(v1Client clientv1.CoreV1Interface, name, image string) error {
-	containers := make([]corev1.Container, 1)
-	containers[0] = corev1.Container{
-		Name:  name + "-container",
-		Image: image,
-	}
-
+func CreatePod(podsGoClient clientv1.PodInterface, name, image string) error {
 	pod := &corev1.Pod{
 		TypeMeta:   metav1.TypeMeta{APIVersion: "v1", Kind: "Pod"},
 		ObjectMeta: metav1.ObjectMeta{Name: name},
-		Spec:       corev1.PodSpec{Containers: containers},
+		Spec:       corev1.PodSpec{Containers: []corev1.Container{{Name: name + "-container", Image: image}}},
 	}
 
-	_, err := v1Client.Pods("default").Create(context.TODO(), pod, metav1.CreateOptions{})
+	_, err := podsGoClient.Create(context.TODO(), pod, metav1.CreateOptions{})
 
 	return err
 }
 
-func UpdatePods(v1Client clientv1.CoreV1Interface, options metav1.ListOptions, labels map[string]string) error {
-	pods, err := v1Client.Pods("default").List(context.TODO(), options)
+func UpdatePods(podsGoClient clientv1.PodInterface, options metav1.ListOptions, labels map[string]string) error {
+	pods, err := podsGoClient.List(context.TODO(), options)
 
 	if err != nil {
 		return err
@@ -54,7 +47,7 @@ func UpdatePods(v1Client clientv1.CoreV1Interface, options metav1.ListOptions, l
 
 	for _, pod := range pods.Items {
 		pod.Labels = labels
-		_, err := v1Client.Pods("default").Update(context.TODO(), &pod, metav1.UpdateOptions{})
+		_, err := podsGoClient.Update(context.TODO(), &pod, metav1.UpdateOptions{})
 		if err != nil {
 			return err
 		}
