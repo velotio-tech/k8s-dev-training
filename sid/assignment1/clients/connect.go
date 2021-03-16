@@ -34,3 +34,7 @@ func NewPodsK8sGo(namespace string) clientcorev1.PodInterface {
 func NewDeployK8sGo(namespace string) clientappsv1.DeploymentInterface {
 	return NewK8sGo().AppsV1().Deployments(namespace)
 }
+
+func NewServiceK8sGo(namespace string) clientcorev1.ServiceInterface {
+	return NewK8sGo().CoreV1().Services(namespace)
+}
