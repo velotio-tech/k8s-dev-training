@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-func New() *kubernetes.Clientset {
+func NewK8sGo() *kubernetes.Clientset {
 	kubeconfig := filepath.Join(
 		os.Getenv("HOME"), ".kube", "config",
 	)
