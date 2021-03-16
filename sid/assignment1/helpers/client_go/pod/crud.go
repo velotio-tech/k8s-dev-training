@@ -8,7 +8,7 @@ import (
 	clientv1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-func GetPods(podsGoClient clientv1.PodInterface, options metav1.ListOptions) error {
+func Get(podsGoClient clientv1.PodInterface, options metav1.ListOptions) error {
 	pods, err := podsGoClient.List(context.TODO(), options)
 
 	if err != nil {
@@ -22,11 +22,11 @@ func GetPods(podsGoClient clientv1.PodInterface, options metav1.ListOptions) err
 	return nil
 }
 
-func DeletePods(podsGoClient clientv1.PodInterface, listOptions metav1.ListOptions) error {
+func Delete(podsGoClient clientv1.PodInterface, listOptions metav1.ListOptions) error {
 	return podsGoClient.DeleteCollection(context.TODO(), *metav1.NewDeleteOptions(int64(0)), listOptions)
 }
 
-func CreatePod(podsGoClient clientv1.PodInterface, name, image string) error {
+func Create(podsGoClient clientv1.PodInterface, name, image string) error {
 	pod := &corev1.Pod{
 		TypeMeta:   metav1.TypeMeta{APIVersion: "v1", Kind: "Pod"},
 		ObjectMeta: metav1.ObjectMeta{Name: name},
@@ -38,7 +38,7 @@ func CreatePod(podsGoClient clientv1.PodInterface, name, image string) error {
 	return err
 }
 
-func UpdatePods(podsGoClient clientv1.PodInterface, options metav1.ListOptions, labels map[string]string) error {
+func Update(podsGoClient clientv1.PodInterface, options metav1.ListOptions, labels map[string]string) error {
 	pods, err := podsGoClient.List(context.TODO(), options)
 
 	if err != nil {

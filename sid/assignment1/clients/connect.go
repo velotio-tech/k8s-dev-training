@@ -1,8 +1,9 @@
-package client
+package clients
 
 import (
 	"k8s.io/client-go/kubernetes"
-	clientv1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	clientappsv1 "k8s.io/client-go/kubernetes/typed/apps/v1"
+	clientcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	"log"
 	"os"
@@ -26,6 +27,10 @@ func NewK8sGo() *kubernetes.Clientset {
 	return clientset
 }
 
-func NewPodsK8sGo(namespace string) clientv1.PodInterface {
+func NewPodsK8sGo(namespace string) clientcorev1.PodInterface {
 	return NewK8sGo().CoreV1().Pods(namespace)
+}
+
+func NewDeployK8sGo(namespace string) clientappsv1.DeploymentInterface {
+	return NewK8sGo().AppsV1().Deployments(namespace)
 }
