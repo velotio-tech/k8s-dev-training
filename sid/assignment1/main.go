@@ -1,7 +1,10 @@
 package main
 
-import "github.com/farkaskid/k8s-dev-training/assignment1/testers/pod"
+import (
+	"github.com/farkaskid/k8s-dev-training/assignment1/testers/deployment"
+)
 
 func main() {
-	pod.CRTTester()
+	//pod.CRTTester()
+	deployment.CRTTester()
 }
