@@ -1,9 +1,7 @@
 package main
 
-import (
-	"github.com/farkaskid/k8s-dev-training/assignment1/testers/service"
-)
+import "github.com/farkaskid/k8s-dev-training/assignment1/testers/pod"
 
 func main() {
-	service.GoClientTester()
+	pod.CRTTester()
 }

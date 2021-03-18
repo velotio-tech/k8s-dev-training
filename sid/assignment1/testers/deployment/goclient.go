@@ -3,7 +3,7 @@ package deployment
 import (
 	"fmt"
 	"github.com/farkaskid/k8s-dev-training/assignment1/clients"
-	"github.com/farkaskid/k8s-dev-training/assignment1/helpers/client_go/deployment"
+	"github.com/farkaskid/k8s-dev-training/assignment1/helpers/client-go/deployment"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

@@ -3,7 +3,7 @@ package service
 import (
 	"fmt"
 	"github.com/farkaskid/k8s-dev-training/assignment1/clients"
-	"github.com/farkaskid/k8s-dev-training/assignment1/helpers/client_go/service"
+	"github.com/farkaskid/k8s-dev-training/assignment1/helpers/client-go/service"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
