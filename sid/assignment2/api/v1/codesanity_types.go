@@ -54,6 +54,7 @@ type CodeSanityStatus struct {
 }
 
 // +kubebuilder:object:root=true
+//+kubebuilder:subresource:status
 // CodeSanity is the Schema for the codesanities API
 type CodeSanity struct {
 	metav1.TypeMeta   `json:",inline"`

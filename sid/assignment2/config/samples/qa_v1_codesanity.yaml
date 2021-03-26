@@ -5,7 +5,9 @@ metadata:
 spec:
   # Add fields here
   testFilesRegexStr: '*.test.go'
-  requiredCoverage: 24
+  requiredCoverage: 31
+  badkey: 1
 status:
   success: true
   coverage: 28
+  hello: world
