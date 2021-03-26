@@ -1,0 +1,11 @@
+apiVersion: qa.test.com/v1
+kind: CodeSanity
+metadata:
+  name: codesanity-sample
+spec:
+  # Add fields here
+  testFilesRegexStr: '*.test.go'
+  requiredCoverage: 24
+status:
+  success: true
+  coverage: 28
