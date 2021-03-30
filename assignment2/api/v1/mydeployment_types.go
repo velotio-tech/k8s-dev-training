@@ -36,6 +36,7 @@ type MyDeploymentSpec struct {
 	// controller should create.
 	// This field must be specified.
 	// +kubebuilder:validation:MaxLength=64
+	// +kubebuilder:validation:MinLength=3
 	DeploymentName string `json:"deploymentName"`
 	// The number of old ReplicaSets to retain to allow rollback.
 	// This is a pointer to distinguish between explicit zero and not specified.

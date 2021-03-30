@@ -38,6 +38,7 @@ spec:
               description: DeploymentName is the name of the Deployment resource that
                 the controller should create. This field must be specified.
               maxLength: 64
+              minLength: 3
               type: string
             replicas:
               description: Number of desired pods. This is a pointer to distinguish
