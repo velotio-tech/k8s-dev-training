@@ -36,6 +36,14 @@ type CodeSanitySpec struct {
 	// +kubebuilder:validation:Minimum=30
 	// +optional
 	RequiredCoverage *int32 `json:"requiredCoverage,omitempty"`
+
+	// Pods to cover
+	// +optional
+	PodNames []string `json:"podNames,omitempty"`
+
+	// Images to cover
+	// +optional
+	Images []string `json:"images,omitempty"`
 }
 
 // CodeSanityStatus defines the observed state of CodeSanity
@@ -45,16 +53,23 @@ type CodeSanityStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Was the sanity successful
-	Success bool `json:"success"`
+	// A map that stores the latest test coverage corresponding to an image
+	CoverageMap map[string]*int32 `json:"coverageMap,omitempty"`
 
-	// Coverage calculated
-	// +optional
-	// +kubebuilder:validation:Minimum=0
-	Coverage *int32 `json:"coverage,omitempty"`
+	// Healthy pods
+	// A map that stores the latest test coverage for a pod's image against it's image
+	HealthyPods map[string]*int32 `json:"healthyPods,omitempty"`
+
+	// Unhealthy pods
+	// A map that stores the latest test coverage for a pod's image against it's image
+	UnhealthyPods map[string]*int32 `json:"unhealthyPods,omitempty"`
+
+	// Last run
+	LastRunAt metav1.Time `json:"lastRunAt,omitempty"`
 }
 
 // +kubebuilder:object:root=true
-//+kubebuilder:subresource:status
+// +kubebuilder:subresource:status
 // CodeSanity is the Schema for the codesanities API
 type CodeSanity struct {
 	metav1.TypeMeta   `json:",inline"`
