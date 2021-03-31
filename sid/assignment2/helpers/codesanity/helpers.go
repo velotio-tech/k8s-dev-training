@@ -48,6 +48,8 @@ func checkTestJobs(
 	log.Info("<-Checking spawned jobs->")
 
 	var testJobs batchv1.JobList
+	var completedJobs []batchv1.Job
+
 	if err := c.List(
 		ctx,
 		&testJobs,
@@ -57,6 +59,7 @@ func checkTestJobs(
 		return err
 	}
 
+	// Checking completed jobs for test results
 	for _, job := range testJobs.Items {
 		finished, condition := jobs.IsJobFinished(&job)
 
@@ -65,11 +68,26 @@ func checkTestJobs(
 			continue
 		}
 
+		completedJobs = append(completedJobs, job)
+		testedPod := job.Labels["pod"]
+
 		switch condition {
 		case batchv1.JobFailed:
-			log.Info(job.Name + " has failed")
+			log.Info("Test for pod: " + testedPod + " has failed")
+			sanity.Status.UnhealthyPods = append(sanity.Status.UnhealthyPods, testedPod)
+
 		case batchv1.JobComplete:
-			log.Info(job.Name + " has success")
+			log.Info("Test for pod: " + testedPod + " has passed")
+			sanity.Status.HealthyPods = append(sanity.Status.HealthyPods, testedPod)
+		}
+	}
+
+	// Removing completed jobs
+	for _, job := range completedJobs {
+		if err := c.Delete(ctx, &job, client.PropagationPolicy(metav1.DeletePropagationBackground)); err != nil {
+			log.Error(err, "Failed to delete completed job: "+job.Name)
+
+			return err
 		}
 	}
 

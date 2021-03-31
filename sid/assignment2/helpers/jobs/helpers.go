@@ -8,6 +8,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"math/rand"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strconv"
@@ -35,7 +36,7 @@ func CreateJobForPod(
 
 	job := batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Labels:      map[string]string{"type": "testing"},
+			Labels:      map[string]string{"type": "testing", "pod": pod.Name},
 			Annotations: map[string]string{},
 			Name:        pod.Name + "-testing-job-" + timeStr,
 			Namespace:   pod.Namespace,
@@ -64,7 +65,12 @@ func CreateJobForPod(
 func IsJobFinished(job *batchv1.Job) (bool, batchv1.JobConditionType) {
 	for _, condition := range job.Status.Conditions {
 		if (condition.Type == batchv1.JobComplete || condition.Type == batchv1.JobFailed) && condition.Status == v1.ConditionTrue {
-			return true, condition.Type
+			// A Random number decides if the job failed or not to emulate failures
+			if rand.Intn(2) == 1 {
+				return true, batchv1.JobComplete
+			}
+
+			return true, batchv1.JobFailed
 		}
 	}
 
