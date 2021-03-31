@@ -26,12 +26,12 @@ func CreateJobForPod(
 	pod *v1.Pod,
 	client client.Client,
 	scheme *runtime.Scheme,
-	sanity qav1.CodeSanity,
+	sanity *qav1.CodeSanity,
 	log logr.Logger,
 ) error {
 	timeStr := strconv.FormatInt(time.Now().Unix(), 10)
 
-	log.Info("creating testing job for pod" + pod.Name)
+	log.Info("creating testing job for pod: " + pod.Name)
 
 	job := batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
@@ -54,9 +54,19 @@ func CreateJobForPod(
 		},
 	}
 
-	if err := ctrl.SetControllerReference(&sanity, &job, scheme); err != nil {
+	if err := ctrl.SetControllerReference(sanity, &job, scheme); err != nil {
 		log.Error(err, "Failed to attach owner reference to the job")
 	}
 
 	return client.Create(ctx, &job)
+}
+
+func IsJobFinished(job *batchv1.Job) (bool, batchv1.JobConditionType) {
+	for _, condition := range job.Status.Conditions {
+		if (condition.Type == batchv1.JobComplete || condition.Type == batchv1.JobFailed) && condition.Status == v1.ConditionTrue {
+			return true, condition.Type
+		}
+	}
+
+	return false, ""
 }
