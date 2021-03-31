@@ -18,8 +18,10 @@ package controllers
 
 import (
 	"context"
-
+	"github.com/farkaskid/k8s-dev-training/assignment2/helpers/codesanity"
+	"github.com/farkaskid/k8s-dev-training/assignment2/helpers/jobs"
 	"github.com/go-logr/logr"
+	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -34,14 +36,46 @@ type CodeSanityReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+type ResourceType string
+
+const (
+	JobResource    ResourceType = "Job"
+	SanityResource ResourceType = "CodeSanity"
+)
+
 // +kubebuilder:rbac:groups=qa.test.com,resources=codesanities,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=qa.test.com,resources=codesanities/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=batch,resources=jobs/status,verbs=get
 
 func (r *CodeSanityReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	_ = context.Background()
-	_ = r.Log.WithValues("codesanity", req.NamespacedName)
+	ctx := context.Background()
+	log := r.Log.WithValues("codesanity", req.NamespacedName)
 
-	// your logic here
+	// Find out resource type from the request
+	var sanity qav1.CodeSanity
+	var job batchv1.Job
+
+	resourceType := SanityResource
+
+	if err := r.Get(ctx, req.NamespacedName, &sanity); err != nil {
+		log.Info("Failed to get a CodeSanity. Trying to get a pod")
+
+		if err = r.Get(ctx, req.NamespacedName, &job); err != nil {
+			log.Error(err, "Failed to get a job")
+
+			return ctrl.Result{}, err
+		}
+
+		resourceType = JobResource
+	}
+
+	switch resourceType {
+	case SanityResource:
+		return codesanity.CodeSanityRequestHandler(ctx, sanity, r, r.Scheme, log)
+	case JobResource:
+		return jobs.JobRequestHandler(job, r, log)
+	}
 
 	return ctrl.Result{}, nil
 }
@@ -49,5 +83,6 @@ func (r *CodeSanityReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 func (r *CodeSanityReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&qav1.CodeSanity{}).
+		Owns(&batchv1.Job{}).
 		Complete(r)
 }

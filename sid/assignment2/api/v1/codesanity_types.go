@@ -54,15 +54,19 @@ type CodeSanityStatus struct {
 
 	// Was the sanity successful
 	// A map that stores the latest test coverage corresponding to an image
-	CoverageMap map[string]*int32 `json:"coverageMap,omitempty"`
+	//CoverageMap CoverageMap `json:"coverageMap,omitempty"`
 
 	// Healthy pods
 	// A map that stores the latest test coverage for a pod's image against it's image
-	HealthyPods map[string]*int32 `json:"healthyPods,omitempty"`
+	HealthyPods []string `json:"healthyPods,omitempty"`
 
 	// Unhealthy pods
 	// A map that stores the latest test coverage for a pod's image against it's image
-	UnhealthyPods map[string]*int32 `json:"unhealthyPods,omitempty"`
+	UnhealthyPods []string `json:"unhealthyPods,omitempty"`
+
+	// Processed Pods
+	// A list that holds pod names that have been processed
+	ProcessedPods []string `json:"processedPods,omitempty"`
 
 	// Last run
 	LastRunAt metav1.Time `json:"lastRunAt,omitempty"`
@@ -87,6 +91,10 @@ type CodeSanityList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []CodeSanity `json:"items"`
 }
+
+//type CoverageMap struct {
+//	Images map[string]*int32 `json:"Images,omitempty"`
+//}
 
 func init() {
 	SchemeBuilder.Register(&CodeSanity{}, &CodeSanityList{})

@@ -36,6 +36,16 @@ spec:
         spec:
           description: CodeSanitySpec defines the desired state of CodeSanity
           properties:
+            images:
+              description: Images to cover
+              items:
+                type: string
+              type: array
+            podNames:
+              description: Pods to cover
+              items:
+                type: string
+              type: array
             requiredCoverage:
               description: Required coverage percentage
               format: int32
@@ -50,16 +60,28 @@ spec:
           type: object
         status:
           properties:
-            coverage:
-              description: Coverage calculated
-              format: int32
-              minimum: 0
-              type: integer
-            success:
-              description: Was the sanity successful
-              type: boolean
-          required:
-          - success
+            healthyPods:
+              description: Healthy pods A map that stores the latest test coverage
+                for a pod's image against it's image
+              items:
+                type: string
+              type: array
+            lastRunAt:
+              description: Last run
+              format: date-time
+              type: string
+            processedPods:
+              description: Processed Pods A list that holds pod names that have been
+                processed
+              items:
+                type: string
+              type: array
+            unhealthyPods:
+              description: Unhealthy pods A map that stores the latest test coverage
+                for a pod's image against it's image
+              items:
+                type: string
+              type: array
           type: object
       type: object
   version: v1
