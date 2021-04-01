@@ -1,0 +1,104 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.5
+  creationTimestamp: null
+  name: codesanities.qa.test.com
+spec:
+  group: qa.test.com
+  names:
+    kind: CodeSanity
+    listKind: CodeSanityList
+    plural: codesanities
+    singular: codesanity
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: CodeSanity is the Schema for the codesanities API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: CodeSanitySpec defines the desired state of CodeSanity
+          properties:
+            images:
+              description: Images to cover
+              items:
+                type: string
+              type: array
+            podNames:
+              description: Pods to cover
+              items:
+                type: string
+              type: array
+            requiredCoverage:
+              description: Required coverage percentage
+              format: int32
+              minimum: 30
+              type: integer
+            resource:
+              description: Resource to be used to run the tests. This can either be
+                a Job or a CronJob
+              enum:
+              - job
+              - cronjob
+              type: string
+            testFilesRegexStr:
+              description: Regex to select test files
+              minLength: 4
+              type: string
+          required:
+          - testFilesRegexStr
+          type: object
+        status:
+          properties:
+            healthyPods:
+              description: Healthy pods A map that stores the latest test coverage
+                for a pod's image against it's image
+              items:
+                type: string
+              type: array
+            lastRunAt:
+              description: Last run
+              format: date-time
+              type: string
+            processedPods:
+              description: Processed Pods A list that holds pod names that have been
+                processed
+              items:
+                type: string
+              type: array
+            unhealthyPods:
+              description: Unhealthy pods A map that stores the latest test coverage
+                for a pod's image against it's image
+              items:
+                type: string
+              type: array
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

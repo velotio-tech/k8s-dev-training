@@ -1,0 +1,20 @@
+# permissions for end users to view codesanities.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: codesanity-viewer-role
+rules:
+- apiGroups:
+  - qa.test.com
+  resources:
+  - codesanities
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - qa.test.com
+  resources:
+  - codesanities/status
+  verbs:
+  - get
