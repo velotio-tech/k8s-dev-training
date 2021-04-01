@@ -5,6 +5,7 @@ import (
 	qav1 "github.com/farkaskid/k8s-dev-training/assignment2/api/v1"
 	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
+	"k8s.io/api/batch/v1beta1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -14,6 +15,11 @@ import (
 	"strconv"
 	"time"
 )
+
+type JobObject interface {
+	metav1.Object
+	runtime.Object
+}
 
 func JobRequestHandler(
 	job batchv1.Job, client client.Client, log logr.Logger) (ctrl.Result, error) {
@@ -34,32 +40,74 @@ func CreateJobForPod(
 
 	log.Info("creating testing job for pod: " + pod.Name)
 
-	job := batchv1.Job{
+	var job JobObject
+
+	if sanity.Spec.Resource == qav1.CronJob {
+		job = createCronJob(timeStr, pod, "")
+	} else {
+		job = createJob(timeStr, pod)
+	}
+
+	if err := ctrl.SetControllerReference(sanity, job, scheme); err != nil {
+		log.Error(err, "Failed to attach owner reference to the job")
+	}
+
+	return client.Create(ctx, job)
+}
+
+func createJob(timeStr string, pod *v1.Pod) *batchv1.Job {
+	return &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels:      map[string]string{"type": "testing", "pod": pod.Name},
 			Annotations: map[string]string{},
 			Name:        pod.Name + "-testing-job-" + timeStr,
 			Namespace:   pod.Namespace,
 		},
-		Spec: batchv1.JobSpec{
-			Template: v1.PodTemplateSpec{
-				Spec: v1.PodSpec{
-					Containers: []v1.Container{{
-						Name:    pod.Name + "-testing-job-container" + timeStr,
-						Image:   "busybox",
-						Command: []string{"/bin/sh", "-ec", "sleep 5"},
-					}},
-					RestartPolicy: v1.RestartPolicyNever,
-				},
+		Spec: createJobSpec(pod, timeStr),
+	}
+}
+
+func createCronJob(timeStr string, pod *v1.Pod, schedule string) *v1beta1.CronJob {
+	var jobSchedule string
+
+	if len(schedule) == 0 {
+		jobSchedule = "* * * * *"
+	} else {
+		jobSchedule = schedule
+	}
+
+	return &v1beta1.CronJob{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels:      map[string]string{"type": "testing", "pod": pod.Name},
+			Annotations: map[string]string{},
+			Name:        pod.Name + "-testing-job-" + timeStr,
+			Namespace:   pod.Namespace,
+		},
+		Spec: v1beta1.CronJobSpec{
+			Schedule:                   jobSchedule,
+			FailedJobsHistoryLimit:     new(int32),
+			SuccessfulJobsHistoryLimit: new(int32),
+			JobTemplate: v1beta1.JobTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"pod": pod.Name}},
+				Spec:       createJobSpec(pod, timeStr),
 			},
 		},
 	}
+}
 
-	if err := ctrl.SetControllerReference(sanity, &job, scheme); err != nil {
-		log.Error(err, "Failed to attach owner reference to the job")
+func createJobSpec(pod *v1.Pod, timeStr string) batchv1.JobSpec {
+	return batchv1.JobSpec{
+		Template: v1.PodTemplateSpec{
+			Spec: v1.PodSpec{
+				Containers: []v1.Container{{
+					Name:    pod.Name + "-testing-job-container" + timeStr,
+					Image:   "busybox",
+					Command: []string{"/bin/sh", "-ec", "sleep 5"},
+				}},
+				RestartPolicy: v1.RestartPolicyNever,
+			},
+		},
 	}
-
-	return client.Create(ctx, &job)
 }
 
 func IsJobFinished(job *batchv1.Job) (bool, batchv1.JobConditionType) {

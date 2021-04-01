@@ -19,9 +19,9 @@ package controllers
 import (
 	"context"
 	"github.com/farkaskid/k8s-dev-training/assignment2/helpers/codesanity"
-	"github.com/farkaskid/k8s-dev-training/assignment2/helpers/jobs"
 	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
+	"k8s.io/api/batch/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -37,65 +37,50 @@ type CodeSanityReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-type ResourceType string
-
-const (
-	JobResource    ResourceType = "Job"
-	SanityResource ResourceType = "CodeSanity"
-)
-
 // +kubebuilder:rbac:groups=qa.test.com,resources=codesanities,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=qa.test.com,resources=codesanities/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=batch,resources=jobs/status,verbs=get
-
+// +kubebuilder:rbac:groups=batch,resources=cronjobs,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=batch,resources=cronjobs/status,verbs=get
 func (r *CodeSanityReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("codesanity", req.NamespacedName)
 
 	// Find out resource type from the request
 	var sanity qav1.CodeSanity
-	var job batchv1.Job
-
-	resourceType := SanityResource
 
 	if err := r.Get(ctx, req.NamespacedName, &sanity); err != nil {
 		log.Info("Failed to get a CodeSanity. Trying to get a pod")
 
-		if err = r.Get(ctx, req.NamespacedName, &job); err != nil {
-			log.Error(err, "Failed to get a job")
-
-			return ctrl.Result{}, err
-		}
-
-		resourceType = JobResource
+		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	switch resourceType {
-	case SanityResource:
-		return codesanity.CodeSanityRequestHandler(ctx, &sanity, r, r.Scheme, log)
-	case JobResource:
-		return jobs.JobRequestHandler(job, r, log)
-	}
-
-	return ctrl.Result{}, nil
+	return codesanity.CodeSanityRequestHandler(ctx, &sanity, r, r.Scheme, log)
 }
 
 func (r *CodeSanityReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetFieldIndexer().IndexField(&batchv1.Job{}, codesanity.JobOwnerKey, func(object runtime.Object) []string {
-		job := object.(*batchv1.Job)
-		owner := metav1.GetControllerOf(job)
+	attachOwnerKey := func(object runtime.Object) []string {
+		obj := object.(metav1.Object)
+		owner := metav1.GetControllerOf(obj)
 		if owner == nil {
 			return nil
 		}
 
 		return []string{owner.Name}
-	}); err != nil {
+	}
+
+	if err := mgr.GetFieldIndexer().IndexField(&batchv1.Job{}, codesanity.JobOwnerKey, attachOwnerKey); err != nil {
+		return err
+	}
+
+	if err := mgr.GetFieldIndexer().IndexField(&v1beta1.CronJob{}, codesanity.JobOwnerKey, attachOwnerKey); err != nil {
 		return err
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&qav1.CodeSanity{}).
 		Owns(&batchv1.Job{}).
+		Owns(&v1beta1.CronJob{}).
 		Complete(r)
 }

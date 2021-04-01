@@ -51,6 +51,13 @@ spec:
               format: int32
               minimum: 30
               type: integer
+            resource:
+              description: Resource to be used to run the tests. This can either be
+                a Job or a CronJob
+              enum:
+              - job
+              - cronjob
+              type: string
             testFilesRegexStr:
               description: Regex to select test files
               minLength: 4

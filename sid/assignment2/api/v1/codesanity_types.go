@@ -23,6 +23,13 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+type ResourceType string
+
+const (
+	Job     ResourceType = "job"
+	CronJob ResourceType = "cronjob"
+)
+
 // CodeSanitySpec defines the desired state of CodeSanity
 type CodeSanitySpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
@@ -44,6 +51,10 @@ type CodeSanitySpec struct {
 	// Images to cover
 	// +optional
 	Images []string `json:"images,omitempty"`
+
+	// Resource to be used to run the tests. This can either be a Job or a CronJob
+	// +kubebuilder:validation:Enum=job;cronjob
+	Resource ResourceType `json:"resource,omitempty"`
 }
 
 // CodeSanityStatus defines the observed state of CodeSanity

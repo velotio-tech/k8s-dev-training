@@ -6,6 +6,7 @@ import (
 	"github.com/farkaskid/k8s-dev-training/assignment2/helpers/jobs"
 	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
+	"k8s.io/api/batch/v1beta1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -19,9 +20,9 @@ const JobOwnerKey string = ".metadata.controller"
 func CodeSanityRequestHandler(
 	ctx context.Context, sanity *qav1.CodeSanity, c client.Client, scheme *runtime.Scheme, log logr.Logger) (ctrl.Result, error) {
 
-	log.Info("---Code Sanity Handler Called----")
+	log.Info("---Code Sanity Handler Called---")
 
-	if err := checkTestJobs(ctx, c, scheme, sanity, log); err != nil {
+	if err := checkTestJobs(ctx, c, sanity, log); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -37,30 +38,27 @@ func CodeSanityRequestHandler(
 		return ctrl.Result{}, err
 	}
 
-	log.Info("---Code Sanity Handler Ended----")
+	log.Info("---Code Sanity Handler Ended---")
 
 	return ctrl.Result{}, nil
 }
 
-func checkTestJobs(
-	ctx context.Context, c client.Client, scheme *runtime.Scheme, sanity *qav1.CodeSanity, log logr.Logger) error {
+// Checks all the test jobs that were spawned either directly by CodeSanity CR or by cronjobs spawned by
+// CodeSanity CR. For each job, it checks if the job was completed and whether the tests were run successfully.
+// It adds the pod corresponding to the test job to healthy or unhealthy status lists accordingly.
+func checkTestJobs(ctx context.Context, c client.Client, sanity *qav1.CodeSanity, log logr.Logger) error {
 
 	log.Info("<-Checking spawned jobs->")
 
-	var testJobs batchv1.JobList
 	var completedJobs []batchv1.Job
 
-	if err := c.List(
-		ctx,
-		&testJobs,
-		client.InNamespace(sanity.Namespace),
-		client.MatchingFields{JobOwnerKey: sanity.Name},
-	); err != nil {
+	testingJobs, err := getTestJobs(ctx, c, sanity, log)
+	if err != nil {
 		return err
 	}
 
 	// Checking completed jobs for test results
-	for _, job := range testJobs.Items {
+	for _, job := range testingJobs {
 		finished, condition := jobs.IsJobFinished(&job)
 
 		if !finished {
@@ -74,26 +72,95 @@ func checkTestJobs(
 		switch condition {
 		case batchv1.JobFailed:
 			log.Info("Test for pod: " + testedPod + " has failed")
-			sanity.Status.UnhealthyPods = append(sanity.Status.UnhealthyPods, testedPod)
+			sanity.AddUnhealthyPod(testedPod)
 
 		case batchv1.JobComplete:
 			log.Info("Test for pod: " + testedPod + " has passed")
-			sanity.Status.HealthyPods = append(sanity.Status.HealthyPods, testedPod)
+			sanity.AddHealthyPod(testedPod)
 		}
 	}
 
-	// Removing completed jobs
-	for _, job := range completedJobs {
-		if err := c.Delete(ctx, &job, client.PropagationPolicy(metav1.DeletePropagationBackground)); err != nil {
-			log.Error(err, "Failed to delete completed job: "+job.Name)
+	// Removing completed jobs if jobs were spawned by code sanity
+	if sanity.Spec.Resource == qav1.Job {
+		for _, job := range completedJobs {
+			if err := c.Delete(ctx, &job, client.PropagationPolicy(metav1.DeletePropagationBackground)); err != nil {
+				log.Error(err, "Failed to delete completed job: "+job.Name)
 
-			return err
+				return err
+			}
 		}
 	}
 
 	return nil
 }
 
+// Gets all the jobs that were spawned either directly by CodeSanity CR or indirectly by the cronjobs created by
+// the CodeSanity CR
+func getTestJobs(
+	ctx context.Context, c client.Client, sanity *qav1.CodeSanity, log logr.Logger) ([]batchv1.Job, error) {
+	log.Info("<-Getting all spawned jobs->")
+
+	var testJobs []batchv1.Job
+
+	// Get jobs that were directly spawned by CodeSanity CR
+	if sanity.Spec.Resource == qav1.Job {
+		log.Info("getting jobs for: " + sanity.Name)
+
+		var testJobList batchv1.JobList
+
+		if err := c.List(
+			ctx,
+			&testJobList,
+			client.InNamespace(sanity.Namespace),
+			client.MatchingFields{JobOwnerKey: sanity.Name},
+		); err != nil {
+			log.Error(err, "Failed to get jobs for: "+sanity.Name)
+
+			return testJobs, err
+		}
+
+		return testJobList.Items, nil
+	}
+
+	// Get the cronjobs spawned by CodeSanity CR and then get the jobs spawned by those cronjobs
+	var testCronJobList v1beta1.CronJobList
+
+	log.Info("getting cronjobs for: " + sanity.Name)
+
+	if err := c.List(
+		ctx,
+		&testCronJobList,
+		client.InNamespace(sanity.Namespace),
+		client.MatchingFields{JobOwnerKey: sanity.Name},
+	); err != nil {
+		log.Error(err, "Failed to get cronjobs for: "+sanity.Name)
+
+		return testJobs, err
+	}
+
+	for _, cronjob := range testCronJobList.Items {
+		var testJobList batchv1.JobList
+
+		log.Info("getting jobs for: " + cronjob.Name)
+
+		if err := c.List(
+			ctx,
+			&testJobList,
+			client.InNamespace(sanity.Namespace),
+			client.MatchingFields{JobOwnerKey: cronjob.Name},
+		); err != nil {
+			log.Error(err, "Failed to get jobs for: "+cronjob.Name)
+
+			return testJobs, err
+		}
+
+		testJobs = append(testJobs, testJobList.Items...)
+	}
+
+	return testJobs, nil
+}
+
+// Spawns new jobs/cronjobs for the pods selected according to different attributes in CodeSanity CR spec
 func spawnNewTestJobs(
 	ctx context.Context, c client.Client, scheme *runtime.Scheme, sanity *qav1.CodeSanity, log logr.Logger) error {
 

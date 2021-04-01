@@ -6,5 +6,6 @@ spec:
   # Add fields here
   testFilesRegexStr: '*.test.go'
   requiredCoverage: 31
+  resource: "cronjob"
   podNames:
     - "nginx1"

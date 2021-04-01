@@ -31,3 +31,69 @@ func (sanity *CodeSanity) PodValid(pod v1.Pod) bool {
 	}
 	return false
 }
+
+// Mark the pod with podName as healthy
+func (sanity *CodeSanity) AddHealthyPod(healthyPodName string) {
+
+	// Delete Pod from unhealthy list
+	podUnhealthyIndex := -1
+
+	for index, podName := range sanity.Status.UnhealthyPods {
+		if podName == healthyPodName {
+			podUnhealthyIndex = index
+			break
+		}
+	}
+
+	if podUnhealthyIndex != -1 {
+		sanity.Status.UnhealthyPods = append(
+			sanity.Status.UnhealthyPods[:podUnhealthyIndex], sanity.Status.UnhealthyPods[podUnhealthyIndex+1:]...)
+	}
+
+	// Add Pod to healthy list if it's not already in that
+	podHealthyIndex := -1
+
+	for index, podName := range sanity.Status.HealthyPods {
+		if podName == healthyPodName {
+			podHealthyIndex = index
+			break
+		}
+	}
+
+	if podHealthyIndex == -1 {
+		sanity.Status.HealthyPods = append(sanity.Status.HealthyPods, healthyPodName)
+	}
+}
+
+// Mark the pod with podName as healthy
+func (sanity *CodeSanity) AddUnhealthyPod(unhealthyPodName string) {
+
+	// Delete Pod from healthy list
+	podHealthyIndex := -1
+
+	for index, podName := range sanity.Status.HealthyPods {
+		if podName == unhealthyPodName {
+			podHealthyIndex = index
+			break
+		}
+	}
+
+	if podHealthyIndex != -1 {
+		sanity.Status.HealthyPods = append(
+			sanity.Status.HealthyPods[:podHealthyIndex], sanity.Status.HealthyPods[podHealthyIndex+1:]...)
+	}
+
+	// Add Pod to unhealthy list if it's not already in that
+	podUnhealthyIndex := -1
+
+	for index, podName := range sanity.Status.UnhealthyPods {
+		if podName == unhealthyPodName {
+			podUnhealthyIndex = index
+			break
+		}
+	}
+
+	if podUnhealthyIndex == -1 {
+		sanity.Status.UnhealthyPods = append(sanity.Status.UnhealthyPods, unhealthyPodName)
+	}
+}
