@@ -1,0 +1,24 @@
+# permissions for end users to edit myjobs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: myjob-editor-role
+rules:
+- apiGroups:
+  - velotio.pankaj.io
+  resources:
+  - myjobs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - velotio.pankaj.io
+  resources:
+  - myjobs/status
+  verbs:
+  - get
