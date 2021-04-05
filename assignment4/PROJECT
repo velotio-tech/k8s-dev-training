@@ -1,0 +1,7 @@
+domain: pankaj.io
+repo: github.com/pankaj9310/k8s-dev-training/pankaj/assignment4
+resources:
+- group: velotio
+  kind: MyDeployment
+  version: v1
+version: "2"
