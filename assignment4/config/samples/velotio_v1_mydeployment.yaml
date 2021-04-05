@@ -4,4 +4,5 @@ metadata:
   name: mydeployment-sample
 spec:
   # Add fields here
-  foo: bar
+  deploymentName: deployment-pankaj
+  replicas: 2
