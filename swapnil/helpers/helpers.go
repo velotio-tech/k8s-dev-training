@@ -13,7 +13,7 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
-func get_clientset() *kubernetes.Clientset{
+func GetClientset() *kubernetes.Clientset{
 	var kubeconfig *string
 	if home := homedir.HomeDir(); home != "" {
 		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
@@ -33,7 +33,7 @@ func get_clientset() *kubernetes.Clientset{
 	return clientset
 }
 
-func prompt() {
+func Prompt() {
 	fmt.Printf("-> Press Return key to continue.")
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
