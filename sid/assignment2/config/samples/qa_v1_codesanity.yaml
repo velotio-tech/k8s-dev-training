@@ -1,0 +1,11 @@
+apiVersion: qa.test.com/v1
+kind: CodeSanity
+metadata:
+  name: codesanity-sample1
+spec:
+  # Add fields here
+  testFilesRegexStr: '*.test.go'
+  requiredCoverage: 31
+  resource: "job"
+  podNames:
+    - "nginx1"
