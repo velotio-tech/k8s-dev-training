@@ -59,7 +59,7 @@ func checkTestJobs(ctx context.Context, c client.Client, sanity *qav1.CodeSanity
 
 	// Checking completed jobs for test results
 	for _, job := range testingJobs {
-		finished, condition := jobs.IsJobFinished(&job)
+		finished := jobs.IsJobFinished(&job)
 
 		if !finished {
 			log.Info("Skipping running job: " + job.Name)
@@ -69,7 +69,7 @@ func checkTestJobs(ctx context.Context, c client.Client, sanity *qav1.CodeSanity
 		completedJobs = append(completedJobs, job)
 		testedPod := job.Labels["pod"]
 
-		switch condition {
+		switch jobs.GetJobCondition(&job) {
 		case batchv1.JobFailed:
 			log.Info("Test for pod: " + testedPod + " has failed")
 			sanity.AddUnhealthyPod(testedPod)

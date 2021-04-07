@@ -110,17 +110,20 @@ func createJobSpec(pod *v1.Pod, timeStr string) batchv1.JobSpec {
 	}
 }
 
-func IsJobFinished(job *batchv1.Job) (bool, batchv1.JobConditionType) {
+func IsJobFinished(job *batchv1.Job) bool {
 	for _, condition := range job.Status.Conditions {
 		if (condition.Type == batchv1.JobComplete || condition.Type == batchv1.JobFailed) && condition.Status == v1.ConditionTrue {
-			// A Random number decides if the job failed or not to emulate failures
-			if rand.Intn(2) == 1 {
-				return true, batchv1.JobComplete
-			}
-
-			return true, batchv1.JobFailed
+			return true
 		}
 	}
 
-	return false, ""
+	return false
+}
+
+func GetJobCondition(job *batchv1.Job) batchv1.JobConditionType {
+	// A Random number decides if the job failed or not to emulate failures
+	if rand.Intn(2) == 1 {
+		return batchv1.JobComplete
+	}
+	return batchv1.JobFailed
 }

@@ -19,13 +19,17 @@ package controllers
 import (
 	"context"
 	"github.com/farkaskid/k8s-dev-training/assignment2/helpers/codesanity"
+	"github.com/farkaskid/k8s-dev-training/assignment2/helpers/jobs"
 	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/api/batch/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	qav1 "github.com/farkaskid/k8s-dev-training/assignment2/api/v1"
 )
@@ -78,9 +82,46 @@ func (r *CodeSanityReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 
+	createFilter := func(e event.CreateEvent) bool {
+		if _, ok := e.Object.(*qav1.CodeSanity); ok {
+			return true
+		}
+		return false
+	}
+
+	deleteFilter := func(e event.DeleteEvent) bool {
+		if _, ok := e.Object.(*qav1.CodeSanity); ok {
+			return true
+		}
+		return false
+	}
+
+	updateFilter := func(e event.UpdateEvent) bool {
+		if newJob, ok := e.ObjectNew.(*batchv1.Job); ok {
+			return jobs.IsJobFinished(newJob)
+		}
+
+		if sanity, ok := e.ObjectNew.(*qav1.CodeSanity); ok {
+			oldSanity, _ := e.ObjectOld.(*qav1.CodeSanity)
+
+			if reflect.DeepEqual(sanity.Spec, oldSanity.Spec) {
+				return false
+			}
+		}
+
+		return true
+	}
+
+	p := predicate.Funcs{
+		CreateFunc: createFilter,
+		DeleteFunc: deleteFilter,
+		UpdateFunc: updateFilter,
+	}
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&qav1.CodeSanity{}).
 		Owns(&batchv1.Job{}).
 		Owns(&v1beta1.CronJob{}).
+		WithEventFilter(p).
 		Complete(r)
 }
