@@ -11,6 +11,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/util/homedir"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	crtConfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 func GetClientset() *kubernetes.Clientset{
@@ -43,4 +45,13 @@ func Prompt() {
 		panic(err)
 	}
 	fmt.Println()
+}
+
+func getCRTClient(ns string) client.Client {
+	cli, err := client.New(crtConfig.GetConfigOrDie(), client.Options{})
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	return client.NewNamespacedClient(cli, ns)
 }
