@@ -47,7 +47,7 @@ func Prompt() {
 	fmt.Println()
 }
 
-func getCRTClient(ns string) client.Client {
+func GetCRTClient(ns string) client.Client {
 	cli, err := client.New(crtConfig.GetConfigOrDie(), client.Options{})
 
 	if err != nil {
