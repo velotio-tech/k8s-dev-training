@@ -31,6 +31,7 @@ type MyDeploymentSpec struct {
 	// Number of desired pods. This is a pointer to distinguish between explicit
 	// zero and not specified. Defaults to 1.
 	// +optional
+	//+default=1
 	Replicas *int32 `json:"replicas,omitempty"`
 	// DeploymentName is the name of the Deployment resource that the
 	// controller should create.
@@ -42,6 +43,7 @@ type MyDeploymentSpec struct {
 	// This is a pointer to distinguish between explicit zero and not specified.
 	// Defaults to 10.
 	// +optional
+	// +default=10
 	RevisionHistoryLimit *int32 `json:"revisionHistoryLimit,omitempty"`
 }
 
