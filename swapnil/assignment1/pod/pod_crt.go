@@ -15,6 +15,7 @@ func main() {
 
 	// creating pod
 	fmt.Println("creating pod")
+	helpers.Prompt()
 	pod := &apiv1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "demo-pod",
@@ -45,6 +46,7 @@ func main() {
 
 		fmt.Println("Pod creted")
 	}
+	helpers.Prompt()
 	fmt.Println("updating pod")
 	pod_update := &apiv1.Pod{}
 	err = cli.Get(context.TODO(), crcli.ObjectKey{Name:"demo-pod"}, pod_update)
@@ -62,6 +64,7 @@ func main() {
 			err := cli.Get(context.TODO(), crcli.ObjectKey{Name:"demo-pod"}, pod)
 			//err := cli.List(context.TODO(), podList)
 			if err == nil {
+				fmt.Println("Pod updated with label")
 				fmt.Println(pod.Name, pod.Labels)
 			} else {
 				fmt.Println("Error", err)
@@ -70,6 +73,8 @@ func main() {
 	}
 
 	// listing pods
+	helpers.Prompt()
+	fmt.Println("listing pods")
 	podList := &apiv1.PodList{}
 	err = cli.List(context.TODO(), podList)
 	if err != nil {
@@ -80,6 +85,7 @@ func main() {
 		}
 	}
 
+	helpers.Prompt()
 	// deleting the pod
 	pod = &apiv1.Pod{}
 	err = cli.Get(context.TODO(), crcli.ObjectKey{Name:"demo-pod"}, pod)
@@ -91,6 +97,7 @@ func main() {
 			pod,
 			&crcli.DeleteOptions{Raw: metav1.NewDeleteOptions(int64(0))})
 	}
+	fmt.Println("pod deleted")
 
 }
 

@@ -6,7 +6,7 @@ import (
 	// appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	helpers "github.com/swapnil-velotio/k8s-dev-training/swapnil/helpers"
+	"github.com/swapnil-velotio/k8s-dev-training/swapnil/helpers"
 
 )
 
@@ -51,7 +51,7 @@ func main() {
 		panic(listPodsErr)
 	}
 	for _, d := range pods.Items {
-		fmt.Printf(" * cm name - %s \n", d.Name)
+		fmt.Printf(" * cm name - %s , labels - %s\n", d.Name, d.Data)
 	}
 	fmt.Printf("cms fetched\n")
 
@@ -65,9 +65,4 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("cm deleted\n")
-
-
-
-
-
 }

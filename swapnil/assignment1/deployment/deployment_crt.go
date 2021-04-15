@@ -51,7 +51,7 @@ func main() {
 			},
 		},
 	}
-
+	helpers.Prompt()
 	err := cli.Create(context.TODO(), deployment)
 	if err != nil {
 		fmt.Println("Error creating the deployment", err)
@@ -66,15 +66,15 @@ func main() {
 			fmt.Println("Error", err)
 		}
 
-		fmt.Println("config map creted")
+		fmt.Println("deployment creted")
 	}
-	fmt.Println("updating config map")
+	helpers.Prompt()
+	fmt.Println("updating deployment")
 	deployment = &appsv1.Deployment{}
 	err = cli.Get(context.TODO(), crcli.ObjectKey{Name:"demo-deployment"}, deployment)
 	if err != nil {
 		fmt.Println("Error fetching deployment", err)
 	}else{
-		fmt.Println("updating the deployment")
 		//deployment.Labels["APPNAME"] = "Awesome"
 		deployment.Spec.Replicas = int32Ptr(3)
 		err := cli.Update(context.TODO(), deployment)
@@ -86,13 +86,14 @@ func main() {
 			err := cli.Get(context.TODO(), crcli.ObjectKey{Name:"demo-deployment"}, deployment)
 			//err := cli.List(context.TODO(), podList)
 			if err == nil {
+				fmt.Println("deployment updated")
 				fmt.Println(deployment.Name, deployment.Labels)
 			} else {
 				fmt.Println("Error", err)
 			}
 		}
 	}
-
+	helpers.Prompt()
 	// listing deployments
 	deploymentList := &appsv1.DeploymentList{}
 	err = cli.List(context.TODO(), deploymentList)
@@ -103,19 +104,19 @@ func main() {
 			fmt.Println("name: ", each.Name, " Lables: ", each.Labels)
 		}
 	}
-
+	helpers.Prompt()
 	// deleting the pod
 	deployment = &appsv1.Deployment{}
 	err = cli.Get(context.TODO(), crcli.ObjectKey{Name:"demo-deployment"}, deployment)
 	if err != nil {
 		fmt.Println("Error fetching deployment", err)
 	} else {
-		//cli.Delete(
-		//	context.TODO(),
-		//	deployment,
-		//	&crcli.DeleteOptions{Raw: metav1.NewDeleteOptions(int64(0))})
+		cli.Delete(
+			context.TODO(),
+			deployment,
+			&crcli.DeleteOptions{Raw: metav1.NewDeleteOptions(int64(0))})
 
-		fmt.Println("config mpa deleted")
+		fmt.Println("deployment deleted")
 	}
 
 }

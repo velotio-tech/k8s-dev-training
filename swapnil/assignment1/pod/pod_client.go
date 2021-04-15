@@ -73,9 +73,5 @@ func main() {
 	}); err != nil {
 		panic(err)
 	}
-	fmt.Printf("pods deleted\n")
-
-
-
-
+	fmt.Printf("pod deleted\n")
 }

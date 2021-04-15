@@ -14,6 +14,7 @@ func main() {
 	cli := helpers.GetCRTClient(metav1.NamespaceDefault)
 
 	// creating pod
+	helpers.Prompt()
 	fmt.Println("creating configmap")
 	configMap := &apiv1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -38,6 +39,7 @@ func main() {
 
 		fmt.Println("config map creted")
 	}
+	helpers.Prompt()
 	fmt.Println("updating config map")
 	configMap = &apiv1.ConfigMap{}
 	err = cli.Get(context.TODO(), crcli.ObjectKey{Name:"demo-configmap"}, configMap)
@@ -63,6 +65,7 @@ func main() {
 	}
 
 	// listing config maps
+	helpers.Prompt()
 	configMapList := &apiv1.ConfigMapList{}
 	err = cli.List(context.TODO(), configMapList)
 	if err != nil {
@@ -74,6 +77,7 @@ func main() {
 	}
 
 	// deleting the pod
+	helpers.Prompt()
 	configMap = &apiv1.ConfigMap{}
 	err = cli.Get(context.TODO(), crcli.ObjectKey{Name:"demo-configmap"}, configMap)
 	if err != nil {
