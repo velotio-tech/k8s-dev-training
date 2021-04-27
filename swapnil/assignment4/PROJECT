@@ -1,0 +1,7 @@
+domain: velotio.io
+repo: swapnil/k8s-dev-training/swapnil/assignment4
+resources:
+- group: batch
+  kind: MyDeployment
+  version: v1
+version: "2"
