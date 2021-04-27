@@ -1,0 +1,7 @@
+domain: swapnil.io
+repo: github.com/swapnil-velotio/k8s-dev-training/swapnil/assignment2
+resources:
+- group: batch
+  kind: CronJob
+  version: v1
+version: "2"
