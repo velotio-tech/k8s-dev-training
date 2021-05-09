@@ -1,0 +1,20 @@
+# permissions for end users to view replicamanagers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: replicamanager-viewer-role
+rules:
+- apiGroups:
+  - batch.example.com
+  resources:
+  - replicamanagers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - batch.example.com
+  resources:
+  - replicamanagers/status
+  verbs:
+  - get

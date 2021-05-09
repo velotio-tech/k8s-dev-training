@@ -1,0 +1,15 @@
+domain: example.com
+layout: go.kubebuilder.io/v3
+projectName: assignment2
+repo: github.com/jnbhavya/k8s-dev-training/assignment2
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: example.com
+  group: batch
+  kind: ReplicaManager
+  path: github.com/jnbhavya/k8s-dev-training/assignment2/api/v1
+  version: v1
+version: "3"
