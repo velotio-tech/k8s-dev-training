@@ -32,6 +32,10 @@ type SecretCreatorSpec struct {
 	SecretName string `json:"secretName"`
 
 	//+optional
+	//+kubebuilder:default:default
+	SecretNamespace string `json:"secretNamespace"`
+
+	//+optional
 	ExcludeNamespaces []string `json:"excludeNamespaces,omitempty"`
 
 	//+optional
@@ -50,6 +54,7 @@ type SecretCreatorStatus struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:resource:scope=Cluster
 
 // SecretCreator is the Schema for the secretcreators API
 type SecretCreator struct {
