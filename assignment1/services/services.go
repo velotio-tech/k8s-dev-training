@@ -13,7 +13,7 @@ import (
 
 var service = &apiv1.Service{
 	ObjectMeta: metav1.ObjectMeta{
-		Name: "myService",
+		Name: "my-service",
 	},
 	Spec: apiv1.ServiceSpec{
 		Selector: map[string]string{
@@ -21,7 +21,7 @@ var service = &apiv1.Service{
 		},
 		Ports: []apiv1.ServicePort{
 			{
-				Name: "accessPort",
+				Name: "access-port",
 				Protocol: "TCP",
 				Port: 8009,
 			},
@@ -50,9 +50,9 @@ func GetAllServices() {
 
 func CreateServices() {
 	fmt.Println("Creating Service...")
-	result, err := serviceClient.Create(context.TODO(), service, metav1.CreateOptions{})
+	result, err := serviceClient.Create(context.Background(), service, metav1.CreateOptions{})
 	if err != nil {
-		log.Println("Error Occurred while creating the service")
+		log.Println("Error Occurred while creating the service", err.Error())
 	}
 	fmt.Printf("Created service %q.\n", result.GetObjectMeta().GetName())
 }
@@ -60,7 +60,7 @@ func CreateServices() {
 func DeleteService(){
 	fmt.Println("Deleting service...")
 	deletePolicy := metav1.DeletePropagationForeground
-	if err := serviceClient.Delete(context.TODO(), "myService", metav1.DeleteOptions{
+	if err := serviceClient.Delete(context.Background(), "my-service", metav1.DeleteOptions{
 		PropagationPolicy: &deletePolicy,
 	}); err != nil {
 		panic(err)
@@ -70,13 +70,13 @@ func DeleteService(){
 
 func UpdateServices() {
 	retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		result, getErr := serviceClient.Get(context.TODO(), "myService", metav1.GetOptions{})
+		result, getErr := serviceClient.Get(context.Background(), "my-service", metav1.GetOptions{})
 		if getErr != nil {
 			log.Println(fmt.Errorf("Failed to get latest version of service: %v ", getErr))
 		}
 
 		result.Spec.Ports[0].Protocol = "UDP"
-		_, updateErr := serviceClient.Update(context.TODO(), result, metav1.UpdateOptions{})
+		_, updateErr := serviceClient.Update(context.Background(), result, metav1.UpdateOptions{})
 		return updateErr
 	})
 	if retryErr != nil {

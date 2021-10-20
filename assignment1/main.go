@@ -5,30 +5,28 @@ import (
 	"assignment1/configmap"
 	"assignment1/deployments"
 	"assignment1/services"
-	"flag"
 	"fmt"
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
-	"path/filepath"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	crtconfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 	"time"
 )
 
 func main() {
-	var kubeconfig *string
-	if home := homedir.HomeDir(); home != "" {
-		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-	} else {
-		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
-	}
-	flag.Parse()
+	//var kubeconfig *string
+	//if home := homedir.HomeDir(); home != "" {
+	//	kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+	//} else {
+	//	kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+	//}
+	//flag.Parse()
 
-	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	//config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	config, err := rest.InClusterConfig()
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
@@ -75,27 +73,27 @@ func main() {
 	deployments.SetRtClient(rtc)
 	services.SetRtClient(rtc)
 	configmap.SetRtClient(rtc)
-
-	fmt.Println("Creating Resources")
-	deployments.CreateRTCDeployment()
-	services.CreateRTCServices()
-	configmap.CreateRTCConfigMap()
-
-	time.Sleep(5 * time.Second)
-	fmt.Println("Created Following Resources")
-	deployments.ListRTCDeployments()
-	services.ListRTCServices()
-	configmap.ListRTCConfigMaps()
-
-
-	fmt.Println("Updating Resources")
-	deployments.UpdateRTCDeployment()
-	services.UpdateRTCService()
-	configmap.UpdateRTCConfigMap()
-
-	time.Sleep(5 * time.Second)
-	fmt.Println("Deleting Resources")
-	deployments.DeleteRTCDeployment()
-	services.DeleteRTCService()
-	configmap.DeleteRTCConfigMap()
+	//
+	//fmt.Println("Creating Resources")
+	//deployments.CreateRTCDeployment()
+	//services.CreateRTCServices()
+	//configmap.CreateRTCConfigMap()
+	//
+	//time.Sleep(5 * time.Second)
+	//fmt.Println("Created Following Resources")
+	//deployments.ListRTCDeployments()
+	//services.ListRTCServices()
+	//configmap.ListRTCConfigMaps()
+	//
+	//
+	//fmt.Println("Updating Resources")
+	//deployments.UpdateRTCDeployment()
+	//services.UpdateRTCService()
+	//configmap.UpdateRTCConfigMap()
+	//
+	//time.Sleep(5 * time.Second)
+	//fmt.Println("Deleting Resources")
+	//deployments.DeleteRTCDeployment()
+	//services.DeleteRTCService()
+	//configmap.DeleteRTCConfigMap()
 }

@@ -14,7 +14,7 @@ import (
 
 var deployment = &appsv1.Deployment {
 	ObjectMeta: metav1.ObjectMeta {
-		Name: "myDeployment",
+		Name: "my-deployment",
 	},
 	Spec: appsv1.DeploymentSpec {
 		Replicas: int32Ptr(2),
@@ -68,10 +68,10 @@ func GetAllDeployments() {
 }
 
 func CreateDeployment() {
-	fmt.Println("Creating deployment...")
-	result, err := deploymentClient.Create(context.TODO(), deployment, metav1.CreateOptions{})
+	fmt.Println("Creating deployment...", deploymentClient, deployment)
+	result, err := deploymentClient.Create(context.Background(), deployment, metav1.CreateOptions{})
 	if err != nil {
-		log.Println("Error Occurred while creating the deployment")
+		log.Println("Error Occurred while creating the deployment", err.Error())
 	}
 	fmt.Printf("Created deployment %q.\n", result.GetObjectMeta().GetName())
 }
@@ -79,7 +79,7 @@ func CreateDeployment() {
 func DeleteDeployment(){
 	fmt.Println("Deleting deployment...")
 	deletePolicy := metav1.DeletePropagationForeground
-	if err := deploymentClient.Delete(context.TODO(), "myDeployment", metav1.DeleteOptions{
+	if err := deploymentClient.Delete(context.Background(), "my-deployment", metav1.DeleteOptions{
 		PropagationPolicy: &deletePolicy,
 	}); err != nil {
 		panic(err)
@@ -89,14 +89,14 @@ func DeleteDeployment(){
 
 func UpdateDeployment() {
 	retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		result, getErr := deploymentClient.Get(context.TODO(), "myDeployment", metav1.GetOptions{})
+		result, getErr := deploymentClient.Get(context.Background(), "my-deployment", metav1.GetOptions{})
 		if getErr != nil {
 			log.Println(fmt.Errorf("Failed to get latest version of Deployment: %v", getErr))
 		}
 
 		result.Spec.Replicas = int32Ptr(1)                           // reduce replica count
 		result.Spec.Template.Spec.Containers[0].Image = "nginx:1.13" // change nginx version
-		_, updateErr := deploymentClient.Update(context.TODO(), result, metav1.UpdateOptions{})
+		_, updateErr := deploymentClient.Update(context.Background(), result, metav1.UpdateOptions{})
 		return updateErr
 	})
 	if retryErr != nil {
