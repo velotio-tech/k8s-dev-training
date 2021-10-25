@@ -1,0 +1,16 @@
+domain: my.domain
+layout:
+- go.kubebuilder.io/v3
+projectName: assignment2
+repo: my.domain/ProcOS
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: my.domain
+  group: batch
+  kind: ProcOS
+  path: my.domain/ProcOS/api/v1
+  version: v1
+version: "3"
