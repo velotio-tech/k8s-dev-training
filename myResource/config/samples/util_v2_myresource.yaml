@@ -4,4 +4,9 @@ metadata:
   name: myresource-sample
 spec:
   # Add fields here
-  foo: bar
+  jobName: "sayWho"
+  command: "whoami"
+  schedule: "2021-19-29T07:12:00Z"
+
+status:
+  jobState: "Uninitialised"

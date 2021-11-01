@@ -37,7 +37,6 @@ type MyResourceSpec struct {
 	Command string `json:"command"`
 	// +kubebuilder:validation:Pattern="[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])T(2[0-3]|[01][0-9]):[0-5][0-9]:[0-9][0-9]Z"
 	Schedule string `json:"schedule"`
-
 }
 
 // MyResourceStatus defines the observed state of MyResource
@@ -47,11 +46,14 @@ type MyResourceStatus struct {
 	JobState JobState `json:"jobState"`
 }
 type JobState string
+
 const (
-	Pending JobState = "Pending"
-	Running JobState = "Running"
-	Finished JobState = "Finished"
+	Pending       JobState = "Pending"
+	Running       JobState = "Running"
+	Finished      JobState = "Finished"
+	Uninitialised JobState = "Uninitialised"
 )
+
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
