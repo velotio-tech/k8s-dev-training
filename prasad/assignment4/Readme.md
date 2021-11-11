@@ -15,14 +15,15 @@ disk size - It is the current size of the disk file. i.e how much disk space on 
 
 ### commands:
 qemu virtual-machine boot command.
+```bash
+prasad@empid21060:~/my_data$ qemu-system-x86_64 -smp cores=2 -m 1024 -name TinyLinux -drive file=./Fedora-Cloud-Base-35-1.2.x86_64.qcow2
 ```
--> qemu-system-x86_64 -smp cores=2 -m 1024 -name TinyLinux -drive file=./Fedora-Cloud-Base-35-1.2.x86_64.qcow2
+
+Backing file command.
+```bash
 prasad@empid21060:~/my_data$ qemu-img create -f qcow2 -b Fedora-Cloud-Base-35-1.2.x86_64.qcow2 snapshot-fedora.qcow2
 Formatting 'snapshot-fedora.qcow2', fmt=qcow2 size=5368709120 backing_file=Fedora-Cloud-Base-35-1.2.x86_64.qcow2 cluster_size=65536 lazy_refcounts=off refcount_bits=16
-```
-<br>
-Backing file command.
-```
+
 prasad@empid21060:~/my_data$ qemu-img info snapshot-fedora.qcow2 
 image: snapshot-fedora.qcow2
 file format: qcow2
@@ -41,9 +42,8 @@ prasad@empid21060:~/my_data$ qemu-img rebase -b backup.qcow2 snapshot-fedora.qco
 prasad@empid21060:~/my_data$ qemu-img commit snapshot-fedora.qcow2 
 Image committed.
 ```
-<br>
 Virtual disk expanding and resizing command.
-```
+```bash
 prasad@empid21060:~/my_data$ qemu-img info snapshot-fedora.qcow2 
 image: snapshot-fedora.qcow2
 file format: qcow2
