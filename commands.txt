@@ -1,0 +1,113 @@
+❯ qemu-img info Downloads/CentOS-7-aarch64-GenericCloud-2009.qcow2
+image: Downloads/CentOS-7-aarch64-GenericCloud-2009.qcow2
+file format: qcow2
+virtual size: 8 GiB (8589934592 bytes)
+disk size: 896 MiB
+cluster_size: 65536
+Format specific information:
+    compat: 1.1
+    compression type: zlib
+    lazy refcounts: false
+    refcount bits: 16
+    corrupt: false
+    extended l2: false
+
+
+
+❯ qemu-img resize Downloads/CentOS-7-aarch64-GenericCloud-2009.qcow2 +2G
+Image resized.
+
+❯ qemu-img info -f qcow2 Downloads/CentOS-7-aarch64-GenericCloud-2009.qcow2
+image: Downloads/CentOS-7-aarch64-GenericCloud-2009.qcow2
+file format: qcow2
+virtual size: 10 GiB (10737418240 bytes)
+disk size: 896 MiB
+cluster_size: 65536
+Format specific information:
+    compat: 1.1
+    compression type: zlib
+    lazy refcounts: false
+    refcount bits: 16
+    corrupt: false
+    extended l2: false
+
+
+❯ qemu-img resize --shrink Downloads/CentOS-7-aarch64-GenericCloud-2009.qcow2 -5G
+Image resized.
+
+
+❯ qemu-img info -f qcow2 Downloads/CentOS-7-aarch64-GenericCloud-2009.qcow2
+image: Downloads/CentOS-7-aarch64-GenericCloud-2009.qcow2
+file format: qcow2
+virtual size: 5 GiB (5368709120 bytes)
+disk size: 694 MiB
+cluster_size: 65536
+Format specific information:
+    compat: 1.1
+    compression type: zlib
+    lazy refcounts: false
+    refcount bits: 16
+    corrupt: false
+    extended l2: false
+
+
+
+❯ qemu-img centos.qcow2 -O raw centraw.qcow2
+qemu-img: Command not found: centos.qcow2
+Try 'qemu-img --help' for more information
+
+❯ qemu-img convert centos.qcow2 -O raw centraw.qcow2
+
+❯ qemu-img info centraw.qcow2
+image: centraw.qcow2
+file format: raw
+virtual size: 5 GiB (5368709120 bytes)
+disk size: 625 MiB
+
+
+❯ qemu-img info --backing-chain centraw.qcow2
+image: centraw.qcow2
+file format: raw
+virtual size: 5 GiB (5368709120 bytes)
+disk size: 625 MiB
+
+❯ qemu-img info --backing-chain Downloads/CentOS-7-aarch64-GenericCloud-2009.qcow2
+image: Downloads/CentOS-7-aarch64-GenericCloud-2009.qcow2
+file format: qcow2
+virtual size: 5 GiB (5368709120 bytes)
+disk size: 694 MiB
+cluster_size: 65536
+Format specific information:
+    compat: 1.1
+    compression type: zlib
+    lazy refcounts: false
+    refcount bits: 16
+    corrupt: false
+    extended l2: false
+
+
+❯ qemu-img rebase -f raw -u -b centraw.qcow2 snapCentos.qcow2
+qemu-img: Could not change the backing file to 'centraw.qcow2': backing format must be specified
+
+❯ qemu-img rebase -f qcow2 -F raw -u -b centraw.qcow2 snapCentos.qcow2
+
+❯ qemu-img info --backing-chain snapCentos.qcow2
+image: snapCentos.qcow2
+file format: qcow2
+virtual size: 5 GiB (5368709120 bytes)
+disk size: 196 KiB
+cluster_size: 65536
+backing file: centraw.qcow2
+backing file format: raw
+Format specific information:
+    compat: 1.1
+    compression type: zlib
+    lazy refcounts: false
+    refcount bits: 16
+    corrupt: false
+    extended l2: false
+
+image: centraw.qcow2
+file format: raw
+virtual size: 5 GiB (5368709120 bytes)
+disk size: 625 MiB
