@@ -1,0 +1,16 @@
+domain: domain.example.com
+layout:
+- go.kubebuilder.io/v3
+projectName: assignment2-3
+repo: domain.example.com/project
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: domain.example.com
+  group: batch
+  kind: CustomScaler
+  path: domain.example.com/project/api/v1
+  version: v1
+version: "3"
