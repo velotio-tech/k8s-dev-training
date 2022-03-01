@@ -1,0 +1,7 @@
+apiVersion: batch.domain.example.com/v1
+kind: CustomScaler
+metadata:
+  name: customscaler-sample
+spec:
+  image: httpd
+  replicas: 3
