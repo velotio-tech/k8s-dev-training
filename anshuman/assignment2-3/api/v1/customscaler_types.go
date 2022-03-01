@@ -17,7 +17,6 @@ limitations under the License.
 package v1
 
 import (
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -53,7 +52,6 @@ type CustomScalerStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	Pods  []v1.Pod    `json:"pods"`
 	State ScalerState `json:"scalerstate"`
 }
 
