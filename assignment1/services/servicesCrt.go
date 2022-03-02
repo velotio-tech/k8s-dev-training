@@ -31,6 +31,23 @@ func ListRtcServices() {
 
 func CreateRtcServices() {
 
+	service := &apiv1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "rtc-service",
+		},
+		Spec: apiv1.ServiceSpec{
+			Selector: map[string]string{
+				"app": "demo",
+			},
+			Ports: []apiv1.ServicePort{
+				{
+					Name:     "access-port",
+					Protocol: "TCP",
+					Port:     8010,
+				},
+			},
+		},
+	}
 	err = rtc.Create(context.Background(), service)
 	if err != nil {
 		fmt.Println(err)

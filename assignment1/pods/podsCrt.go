@@ -19,8 +19,8 @@ func CreateRtcPods() {
 	fmt.Println("Creating pod...")
 	pod := &corev1.Pod{
 		TypeMeta:   metav1.TypeMeta{APIVersion: "v1", Kind: "Pod"},
-		ObjectMeta: metav1.ObjectMeta{Name: "test-pod"},
-		Spec:       corev1.PodSpec{Containers: []corev1.Container{{Name: "test-pod" + "-container", Image: "nginx"}}},
+		ObjectMeta: metav1.ObjectMeta{Name: "rtc-pod"},
+		Spec:       corev1.PodSpec{Containers: []corev1.Container{{Name: "rtc-pod" + "-container", Image: "nginx"}}},
 	}
 	err := rtc.Create(context.Background(), pod)
 	if err != nil {
@@ -47,7 +47,7 @@ func UpdateRtcPods() {
 	fmt.Println("Updating pods...")
 	pod := &corev1.Pod{}
 	err := rtc.Get(context.TODO(), client.ObjectKey{
-		Name: "test-pod",
+		Name: "rtc-pod",
 	}, pod)
 	if err != nil {
 		fmt.Println(err)
@@ -65,7 +65,7 @@ func DeleteRtcPods() {
 	fmt.Println("Deleting pod...")
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-pod",
+			Name: "rtc-pod",
 		},
 	}
 	err := rtc.Delete(context.Background(), pod)
