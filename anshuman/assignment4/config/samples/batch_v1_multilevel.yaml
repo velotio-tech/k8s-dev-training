@@ -1,0 +1,8 @@
+apiVersion: batch.my.example.com/v1
+kind: MultiLevel
+metadata:
+  name: multilevel-sample
+spec:
+  name: abcd
+  image: httpd
+  replicas: 3
