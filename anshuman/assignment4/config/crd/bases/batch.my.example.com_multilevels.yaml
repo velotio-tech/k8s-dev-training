@@ -1,0 +1,72 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.8.0
+  creationTimestamp: null
+  name: multilevels.batch.my.example.com
+spec:
+  group: batch.my.example.com
+  names:
+    kind: MultiLevel
+    listKind: MultiLevelList
+    plural: multilevels
+    singular: multilevel
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: MultiLevel is the Schema for the multilevels API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: MultiLevelSpec defines the desired state of MultiLevel
+            properties:
+              image:
+                description: The name of the image to be deployed
+                type: string
+              name:
+                description: The name of the resource
+                minLength: 0
+                type: string
+              replicas:
+                description: kubebuilder:validation:Minimum=1 The number of replicas
+                  of the image
+                type: integer
+            required:
+            - image
+            - name
+            - replicas
+            type: object
+          status:
+            description: MultiLevelStatus defines the observed state of MultiLevel
+            properties:
+              state:
+                type: string
+            required:
+            - state
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

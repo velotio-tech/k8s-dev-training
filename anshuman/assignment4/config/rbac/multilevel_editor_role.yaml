@@ -1,0 +1,24 @@
+# permissions for end users to edit multilevels.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: multilevel-editor-role
+rules:
+- apiGroups:
+  - batch.my.example.com
+  resources:
+  - multilevels
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - batch.my.example.com
+  resources:
+  - multilevels/status
+  verbs:
+  - get
