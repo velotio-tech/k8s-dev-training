@@ -4,18 +4,23 @@ import (
 	"log"
 
 	"k8s.io/client-go/kubernetes"
-	av1 "k8s.io/client-go/kubernetes/typed/apps/v1"
-	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
-var apiObj v1.CoreV1Interface
-var appApiObj av1.AppsV1Interface
+var clientSet *kubernetes.Clientset
 var cl client.Client
 
-func InitKubeConfig() {
+func init() {
+	// Init client
+	var err error
+	cl, err = client.New(config.GetConfigOrDie(), client.Options{})
+	if err != nil {
+		panic(err)
+	}
+
+	// Init Clientset
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		log.Fatal(err)
@@ -26,31 +31,19 @@ func InitKubeConfig() {
 	//	log.Fatal(err)
 	//}
 
-	clientset, err := kubernetes.NewForConfig(config)
+	clientSet, err = kubernetes.NewForConfig(config)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	apiObj = clientset.CoreV1()
-	appApiObj = clientset.AppsV1()
-}
-
-func InitClient() {
-	var err error
-	cl, err = client.New(config.GetConfigOrDie(), client.Options{})
-	if err != nil {
-		panic(err)
-	}
+	// apiObj = clientSet.CoreV1()
+	// appApiObj = clientSet.AppsV1()
 }
 
 func GetClient() client.Client {
 	return cl
 }
 
-func GetAPIObj() v1.CoreV1Interface {
-	return apiObj
-}
-
-func GetAppAPIObj() av1.AppsV1Interface {
-	return appApiObj
+func GetClientSet() *kubernetes.Clientset {
+	return clientSet
 }

@@ -1,4 +1,4 @@
-package c_go
+package controller
 
 import (
 	"assignment1/config"
@@ -9,11 +9,12 @@ import (
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func CreateDeployment(name, namespace, image string, replicas int32) error {
 
-	apiObj := config.GetAppAPIObj()
+	cl := config.GetClient()
 
 	deployment := v1.Deployment{
 		TypeMeta: metav1.TypeMeta{
@@ -48,20 +49,27 @@ func CreateDeployment(name, namespace, image string, replicas int32) error {
 		Status: v1.DeploymentStatus{},
 	}
 
-	createOptions := metav1.CreateOptions{}
+	createOptions := client.CreateOptions{}
 
-	_, err := apiObj.Deployments(namespace).Create(context.Background(), &deployment, createOptions)
+	err := cl.Create(context.Background(), &deployment, &createOptions)
 
 	return err
 }
 
 func DeleteDeployment(name, namespace string) error {
 
-	apiObj := config.GetAppAPIObj()
+	cl := config.GetClient()
+	deployment := v1.Deployment{}
+	objectKey := client.ObjectKey{
+		Namespace: namespace,
+		Name:      name,
+	}
 
-	deleteOptions := metav1.DeleteOptions{}
+	deleteOptions := client.DeleteOptions{}
 
-	err := apiObj.Deployments(namespace).Delete(context.Background(), name, deleteOptions)
+	cl.Get(context.Background(), objectKey, &deployment)
+
+	err := cl.Delete(context.Background(), &deployment, &deleteOptions)
 
 	return err
 }
@@ -73,13 +81,16 @@ func ReadDeployment(name, namespace string) error {
 		showDeployments = true
 	}
 
-	apiObj := config.GetAppAPIObj()
+	cl := config.GetClient()
 
 	if showDeployments {
 
-		listOptions := metav1.ListOptions{}
+		listOptions := client.ListOptions{
+			Namespace: namespace,
+		}
+		deployments := v1.DeploymentList{}
 
-		deployments, err := apiObj.Deployments(namespace).List(context.Background(), listOptions)
+		err := cl.List(context.Background(), &deployments, &listOptions)
 		if err != nil {
 			return err
 		}
@@ -92,9 +103,13 @@ func ReadDeployment(name, namespace string) error {
 		log.Println(string(b))
 	} else {
 
-		getOptions := metav1.GetOptions{}
+		deployment := v1.Deployment{}
+		getOptions := client.ObjectKey{
+			Namespace: namespace,
+			Name:      name,
+		}
 
-		deployment, err := apiObj.Deployments(namespace).Get(context.Background(), name, getOptions)
+		err := cl.Get(context.Background(), getOptions, &deployment)
 		if err != nil {
 			return err
 		}
@@ -111,11 +126,17 @@ func ReadDeployment(name, namespace string) error {
 
 func UpdateDeployment(name, namespace, image string, replicas int32) error {
 
-	apiObj := config.GetAppAPIObj()
+	cl := config.GetClient()
 
-	getOptions := metav1.GetOptions{}
+	getOptions := client.ObjectKey{
+		Namespace: namespace,
+		Name:      name,
+	}
 
-	deployment, err := apiObj.Deployments(namespace).Get(context.Background(), name, getOptions)
+	updateOptions := client.UpdateOptions{}
+	deployment := v1.Deployment{}
+
+	err := cl.Get(context.Background(), getOptions, &deployment)
 	if err != nil {
 		return err
 	}
@@ -123,13 +144,11 @@ func UpdateDeployment(name, namespace, image string, replicas int32) error {
 	if image != "" {
 		deployment.Spec.Template.Spec.Containers[0].Image = image
 	}
-	if replicas != 0 {
+	if replicas >= 0 {
 		deployment.Spec.Replicas = &replicas
 	}
 
-	updateOptions := metav1.UpdateOptions{}
-
-	_, err = apiObj.Deployments(namespace).Update(context.Background(), deployment, updateOptions)
+	err = cl.Update(context.Background(), &deployment, &updateOptions)
 
 	return err
 

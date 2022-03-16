@@ -16,8 +16,8 @@ limitations under the License.
 package cmd
 
 import (
-	"assignment1/ops/c_go"
-	"assignment1/ops/c_runtime"
+	"assignment1/ops/clientgo"
+	"assignment1/ops/controller"
 	"log"
 
 	"github.com/spf13/cobra"
@@ -39,12 +39,12 @@ to quickly create a Cobra application.`,
 		}
 
 		if *backend == "cgo" {
-			err := c_go.DeleteService(*name, *namespace)
+			err := clientgo.DeleteService(*name, *namespace)
 			if err != nil {
 				log.Fatal(err)
 			}
 		} else {
-			err := c_runtime.DeleteService(*name, *namespace)
+			err := controller.DeleteService(*name, *namespace)
 			if err != nil {
 				log.Fatal(err)
 			}

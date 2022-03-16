@@ -1,4 +1,4 @@
-package c_runtime
+package clientgo
 
 import (
 	"assignment1/config"
@@ -8,7 +8,6 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func CreatePod(name, namespace, image string) error {
@@ -29,32 +28,29 @@ func CreatePod(name, namespace, image string) error {
 		},
 	}
 
-	createOptions := client.CreateOptions{
-		Raw: &metav1.CreateOptions{},
+	createOptions := metav1.CreateOptions{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Pod",
+			APIVersion: "v1",
+		},
 	}
 
-	cl := config.GetClient()
+	cs := config.GetClientSet()
+	apiObj := cs.CoreV1()
 
-	err := cl.Create(context.Background(), &podDef, &createOptions)
+	_, err := apiObj.Pods(namespace).Create(context.Background(), &podDef, createOptions)
 
 	return err
 }
 
 func DeletePod(name, namespace string) error {
 
-	deleteOptions := client.DeleteOptions{}
+	deleteOptions := metav1.DeleteOptions{}
 
-	cl := config.GetClient()
+	cs := config.GetClientSet()
+	apiObj := cs.CoreV1()
 
-	pod := v1.Pod{}
-	objectKey := client.ObjectKey{
-		Namespace: namespace,
-		Name:      name,
-	}
-
-	cl.Get(context.Background(), objectKey, &pod)
-
-	err := cl.Delete(context.Background(), &pod, &deleteOptions)
+	err := apiObj.Pods(namespace).Delete(context.Background(), name, deleteOptions)
 
 	return err
 }
@@ -66,17 +62,14 @@ func ReadPod(name, namespace string) error {
 		showPods = true
 	}
 
-	cl := config.GetClient()
+	cs := config.GetClientSet()
+	apiObj := cs.CoreV1()
 
 	if showPods {
 
-		listOptions := client.ListOptions{
-			Namespace: namespace,
-		}
+		listOptions := metav1.ListOptions{}
 
-		pods := v1.PodList{}
-
-		err := cl.List(context.Background(), &pods, &listOptions)
+		pods, err := apiObj.Pods(namespace).List(context.Background(), listOptions)
 		if err != nil {
 			return err
 		}
@@ -88,13 +81,9 @@ func ReadPod(name, namespace string) error {
 		log.Println(string(b))
 	} else {
 
-		pod := v1.Pod{}
-		getOptions := client.ObjectKey{
-			Namespace: namespace,
-			Name:      name,
-		}
+		getOptions := metav1.GetOptions{}
 
-		err := cl.Get(context.Background(), getOptions, &pod)
+		pod, err := apiObj.Pods(namespace).Get(context.Background(), name, getOptions)
 		if err != nil {
 			return err
 		}
@@ -110,23 +99,20 @@ func ReadPod(name, namespace string) error {
 
 func UpdatePod(name, namespace, image string) error {
 
-	cl := config.GetClient()
+	cs := config.GetClientSet()
+	apiObj := cs.CoreV1()
 
-	getOptions := client.ObjectKey{
-		Namespace: namespace,
-		Name:      name,
-	}
-	pod := v1.Pod{}
-	updateOptions := client.UpdateOptions{}
+	getOptions := metav1.GetOptions{}
+	updateOptions := metav1.UpdateOptions{}
 
-	err := cl.Get(context.Background(), getOptions, &pod)
+	pod, err := apiObj.Pods(namespace).Get(context.Background(), name, getOptions)
 	if err != nil {
 		return err
 	}
 
 	pod.Spec.Containers[0].Image = image
 
-	err = cl.Update(context.Background(), &pod, &updateOptions)
+	_, err = apiObj.Pods(namespace).Update(context.Background(), pod, updateOptions)
 
 	return err
 }

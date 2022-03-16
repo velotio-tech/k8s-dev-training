@@ -17,11 +17,8 @@ package main
 
 import (
 	"assignment1/cmd"
-	"assignment1/config"
 )
 
 func main() {
-	config.InitKubeConfig()
-	config.InitClient()
 	cmd.Execute()
 }

@@ -16,8 +16,8 @@ limitations under the License.
 package cmd
 
 import (
-	"assignment1/ops/c_go"
-	"assignment1/ops/c_runtime"
+	"assignment1/ops/clientgo"
+	"assignment1/ops/controller"
 	"log"
 
 	"github.com/spf13/cobra"
@@ -39,12 +39,12 @@ to quickly create a Cobra application.`,
 		}
 
 		if *backend == "cgo" {
-			err := c_go.UpdatePod(*name, *namespace, *image)
+			err := clientgo.UpdatePod(*name, *namespace, *image)
 			if err != nil {
 				log.Fatal(err)
 			}
 		} else {
-			err := c_runtime.UpdatePod(*name, *namespace, *image)
+			err := controller.UpdatePod(*name, *namespace, *image)
 			if err != nil {
 				log.Fatal(err)
 			}

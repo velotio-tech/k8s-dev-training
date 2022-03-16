@@ -1,4 +1,4 @@
-package c_go
+package clientgo
 
 import (
 	"assignment1/config"
@@ -12,7 +12,8 @@ import (
 )
 
 func CreateService(name, namespace, svcType string, port int32) error {
-	apiObj := config.GetAPIObj()
+	cs := config.GetClientSet()
+	apiObj := cs.CoreV1()
 
 	service := v1.Service{
 		TypeMeta: metav1.TypeMeta{
@@ -49,7 +50,8 @@ func CreateService(name, namespace, svcType string, port int32) error {
 
 func DeleteService(name, namespace string) error {
 
-	apiObj := config.GetAPIObj()
+	cs := config.GetClientSet()
+	apiObj := cs.CoreV1()
 
 	deleteOptions := metav1.DeleteOptions{}
 
@@ -65,7 +67,8 @@ func ReadService(name, namespace string) error {
 		showServices = true
 	}
 
-	apiObj := config.GetAPIObj()
+	cs := config.GetClientSet()
+	apiObj := cs.CoreV1()
 
 	if showServices {
 
@@ -105,7 +108,8 @@ func ReadService(name, namespace string) error {
 
 func UpdateService(name, namespace string, port int32) error {
 
-	apiObj := config.GetAPIObj()
+	cs := config.GetClientSet()
+	apiObj := cs.CoreV1()
 
 	getOptions := metav1.GetOptions{}
 

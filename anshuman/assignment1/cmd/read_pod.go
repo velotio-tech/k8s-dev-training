@@ -16,8 +16,8 @@ limitations under the License.
 package cmd
 
 import (
-	"assignment1/ops/c_go"
-	"assignment1/ops/c_runtime"
+	"assignment1/ops/clientgo"
+	"assignment1/ops/controller"
 	"log"
 
 	"github.com/spf13/cobra"
@@ -36,13 +36,13 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if *backend == "cgo" {
-			err := c_go.ReadPod(*name, *namespace)
+			err := clientgo.ReadPod(*name, *namespace)
 			if err != nil {
 				log.Fatal(err)
 			}
 
 		} else {
-			err := c_runtime.ReadPod(*name, *namespace)
+			err := controller.ReadPod(*name, *namespace)
 			if err != nil {
 				log.Fatal(err)
 			}
