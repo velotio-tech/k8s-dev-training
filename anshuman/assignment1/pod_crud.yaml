@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: pdn
+  name: pdn
+spec:
+  serviceAccountName: acc
+  containers:
+  - image: anshumanagarwala/assignment1
+    imagePullPolicy: Always
+    name: pdn
+    resources: {}
+    command: ["./assignment1"]
+    args: ["create", "pod", "--image","httpd", "--name", "abc"]
+  dnsPolicy: ClusterFirst
+  restartPolicy: Never
+status: {}
