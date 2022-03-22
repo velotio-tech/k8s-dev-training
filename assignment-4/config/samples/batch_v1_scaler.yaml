@@ -1,0 +1,8 @@
+apiVersion: batch.my.domain.com/v1
+kind: Scaler
+metadata:
+  name: scaler-sample
+spec:
+  name: wxyz
+  image: httpd
+  replicas: 3
