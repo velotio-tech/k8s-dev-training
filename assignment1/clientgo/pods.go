@@ -1,14 +1,12 @@
-package pods
+package clientgo
 
 import (
 	"context"
 	"fmt"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/util/retry"
-	"log"
 )
 
 var pods = &apiv1.Pod{
@@ -17,55 +15,50 @@ var pods = &apiv1.Pod{
 	Spec:       apiv1.PodSpec{Containers: []apiv1.Container{{Name: "test-nginx", Image: "nginx"}}},
 }
 
-var podsClient corev1.PodInterface
-
-func SetPodsClient(clientSet *kubernetes.Clientset) {
-	podsClient = clientSet.CoreV1().Pods(apiv1.NamespaceDefault)
-}
-
-func CreatePods() {
+func CreatePods(podsClient corev1.PodInterface) error {
 
 	fmt.Println("Creating pod...")
 	result, err := podsClient.Create(context.Background(), pods, metav1.CreateOptions{})
 	if err != nil {
-		log.Println("Error while creating pod", err.Error())
+		return err
 	}
-	fmt.Printf("Created pod %q.\n", result.GetObjectMeta().GetName())
-
+	fmt.Printf("Created pod %s.\n", result.GetObjectMeta().GetName())
+	return nil
 }
 
-func ListAllPods() {
+func ListAllPods(podsClient corev1.PodInterface) error {
 
-	fmt.Printf("Listing pods in namespace %q:\n", apiv1.NamespaceDefault)
+	fmt.Printf("Listing pods in namespace %s:\n", apiv1.NamespaceDefault)
 	list, err := podsClient.List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		panic(err)
+		return err
 	}
 	for _, d := range list.Items {
 		fmt.Printf(" * %s \n", d.Name)
 	}
+	return nil
 }
 
-func DeletePods() {
+func DeletePods(podsClient corev1.PodInterface) error {
 
 	fmt.Println("Deleting pod...")
 	deletePolicy := metav1.DeletePropagationForeground
 	if err := podsClient.Delete(context.Background(), "test-pod", metav1.DeleteOptions{
 		PropagationPolicy: &deletePolicy,
 	}); err != nil {
-		panic(err)
+		return err
 	}
 	fmt.Println("Pod Deleted.")
-
+	return nil
 }
 
-func UpdatePods() {
+func UpdatePods(podsClient corev1.PodInterface) error {
 
 	fmt.Println("Updating pods...")
 	retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 		result, getErr := podsClient.Get(context.Background(), "test-pod", metav1.GetOptions{})
 		if getErr != nil {
-			log.Println(fmt.Errorf("failed to get latest version of pod: %v", getErr))
+			return getErr
 		}
 
 		result.Spec.Containers[0].Image = "nginx:1.17"
@@ -73,7 +66,8 @@ func UpdatePods() {
 		return updateErr
 	})
 	if retryErr != nil {
-		panic(fmt.Errorf("update Pod failed: %v", retryErr))
+		return (fmt.Errorf("update Pod failed: %v", retryErr))
 	}
 	fmt.Println("Updated pod...")
+	return nil
 }

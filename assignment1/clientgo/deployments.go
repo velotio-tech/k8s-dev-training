@@ -1,4 +1,4 @@
-package deployments
+package clientgo
 
 import (
 	"context"
@@ -6,10 +6,8 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	v1 "k8s.io/client-go/kubernetes/typed/apps/v1"
 	"k8s.io/client-go/util/retry"
-	"log"
 )
 
 var deployment = &appsv1.Deployment{
@@ -48,64 +46,61 @@ var deployment = &appsv1.Deployment{
 	},
 }
 
-var deploymentClient v1.DeploymentInterface
-
 func int32Ptr(i int32) *int32 { return &i }
 
-func CreateDeploymentClient(clientSet *kubernetes.Clientset) {
-	deploymentClient = clientSet.AppsV1().Deployments(apiv1.NamespaceDefault)
-}
+func ListAllDeployments(deploymentClient v1.DeploymentInterface) error {
 
-func ListAllDeployments() {
-
-	fmt.Printf("Listing deployments in namespace %q:\n", apiv1.NamespaceDefault)
+	fmt.Printf("Listing deployments in namespace %s:\n", apiv1.NamespaceDefault)
 	list, err := deploymentClient.List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		panic(err)
+		return err
 	}
 	for _, d := range list.Items {
 		fmt.Printf(" * %s (%d replicas)\n", d.Name, *d.Spec.Replicas)
 	}
+	return nil
 }
 
-func CreateDeployment() {
+func CreateDeployment(deploymentClient v1.DeploymentInterface) error {
 
 	fmt.Println("Creating deployment...", deploymentClient, deployment)
 	result, err := deploymentClient.Create(context.Background(), deployment, metav1.CreateOptions{})
 	if err != nil {
-		log.Println("Error Occurred while creating the deployment", err.Error())
+		return err
 	}
-	fmt.Printf("Created deployment %q.\n", result.GetObjectMeta().GetName())
+	fmt.Printf("Created deployment %s.\n", result.GetObjectMeta().GetName())
+	return nil
 }
 
-func DeleteDeployment() {
+func DeleteDeployment(deploymentClient v1.DeploymentInterface) error {
 
 	fmt.Println("Deleting deployment...")
 	deletePolicy := metav1.DeletePropagationForeground
 	if err := deploymentClient.Delete(context.Background(), "test-deployment", metav1.DeleteOptions{
 		PropagationPolicy: &deletePolicy,
 	}); err != nil {
-		panic(err)
+		return err
 	}
 	fmt.Println("Deleted deployment.")
+	return nil
 }
 
-func UpdateDeployment() {
+func UpdateDeployment(deploymentClient v1.DeploymentInterface) error {
 
 	fmt.Println("Updating deployment...")
 	retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 		result, getErr := deploymentClient.Get(context.Background(), "test-deployment", metav1.GetOptions{})
 		if getErr != nil {
-			log.Println(fmt.Errorf("failed to get latest version of Deployment: %v", getErr))
+			return getErr
 		}
-
 		result.Spec.Replicas = int32Ptr(1)
 		result.Spec.Template.Spec.Containers[0].Image = "nginx:1.13"
 		_, updateErr := deploymentClient.Update(context.Background(), result, metav1.UpdateOptions{})
 		return updateErr
 	})
 	if retryErr != nil {
-		panic(fmt.Errorf("update failed: %v", retryErr))
+		return retryErr
 	}
 	fmt.Println("Updated deployment...")
+	return nil
 }

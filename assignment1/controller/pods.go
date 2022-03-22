@@ -1,4 +1,4 @@
-package pods
+package controller
 
 import (
 	"context"
@@ -8,13 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var rtc client.Client
-
-func SetRtcClient(rtClient client.Client) {
-	rtc = rtClient
-}
-
-func CreateRtcPods() {
+func CreateRtcPods(rtc client.Client) error {
 
 	fmt.Println("Creating pod...")
 	pod := &corev1.Pod{
@@ -24,25 +18,26 @@ func CreateRtcPods() {
 	}
 	err := rtc.Create(context.Background(), pod)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	fmt.Println("Name : ", pod.Name, "Container Name : ", pod.Spec.Containers[0].Name, "Image : ", pod.Spec.Containers[0].Image)
+	return nil
 }
 
-func ListRtcPods() {
+func ListRtcPods(rtc client.Client) error {
 	pod := &corev1.PodList{}
 	err := rtc.List(context.Background(), pod)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	} else {
 		for _, p := range pod.Items {
 			fmt.Println("Name : ", p.Name, "Labels : ", p.Labels)
 		}
 	}
-
+	return nil
 }
 
-func UpdateRtcPods() {
+func UpdateRtcPods(rtc client.Client) error {
 
 	fmt.Println("Updating pods...")
 	pod := &corev1.Pod{}
@@ -50,17 +45,18 @@ func UpdateRtcPods() {
 		Name: "rtc-pod",
 	}, pod)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	pod.Spec.Containers[0].Image = "nginx:1.17"
 	err = rtc.Update(context.TODO(), pod)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	fmt.Println(pod.Name, pod.Spec.Containers[0].Image)
+	return nil
 }
 
-func DeleteRtcPods() {
+func DeleteRtcPods(rtc client.Client) error {
 
 	fmt.Println("Deleting pod...")
 	pod := &corev1.Pod{
@@ -70,7 +66,7 @@ func DeleteRtcPods() {
 	}
 	err := rtc.Delete(context.Background(), pod)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
-
+	return nil
 }

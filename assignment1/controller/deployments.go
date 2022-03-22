@@ -1,4 +1,4 @@
-package deployments
+package controller
 
 import (
 	"context"
@@ -7,19 +7,11 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
-	"log"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var rtc client.Client
-var deploy = &appsv1.Deployment{}
+func CreateRtcDeployment(rtc client.Client) error {
 
-func SetRtcClient(rtClient client.Client) {
-	rtc = rtClient
-}
-
-func CreateRtcDeployment() {
-	
 	deploy := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "rtc-deployment",
@@ -58,45 +50,46 @@ func CreateRtcDeployment() {
 	fmt.Println("Creating Deployment...")
 	err := rtc.Create(context.Background(), deploy)
 	if err != nil {
-		log.Println("Error while creating deployment", err.Error())
+		return err
 	}
 	fmt.Println(deploy.Name, deploy.Spec.Template.Spec.Containers[0].Image)
+	return nil
 }
 
-func ListRtcDeployments() {
+func ListRtcDeployments(rtc client.Client) error {
 
 	fmt.Println("Listing Deployments")
 	deployments := &appsv1.DeploymentList{}
 	err := rtc.List(context.Background(), deployments)
 	if err != nil {
-		fmt.Println("Error while fetching deployment list", err.Error())
+		return err
 	} else {
 		for _, each := range deployments.Items {
 			fmt.Println("Name : ", each.Name, " Labels : ", each.Labels)
 		}
 	}
-
+	return nil
 }
 
-func UpdateRtcDeployment() {
+func UpdateRtcDeployment(rtc client.Client) error {
 
 	deployment := &appsv1.Deployment{}
 	err := rtc.Get(context.TODO(), client.ObjectKey{
 		Name: "rtc-deployment",
 	}, deployment)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	deployment.Spec.Template.Spec.Containers[0].Image = "nginx:1.17"
 	err = rtc.Update(context.TODO(), deployment)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	fmt.Println(deployment.Name, deployment.Spec.Template.Spec.Containers[0].Image, deployment.Spec.Replicas)
-
+	return nil
 }
 
-func DeleteRtcDeployment() {
+func DeleteRtcDeployment(rtc client.Client) error {
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -105,6 +98,7 @@ func DeleteRtcDeployment() {
 	}
 	err := rtc.Delete(context.Background(), deployment)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
+	return nil
 }

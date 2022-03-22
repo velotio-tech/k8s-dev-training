@@ -1,4 +1,4 @@
-package services
+package controller
 
 import (
 	"context"
@@ -9,27 +9,23 @@ import (
 )
 
 var err error
-var rtc client.Client
 
-func SetRtcClient(rtClient client.Client) {
-	rtc = rtClient
-}
-
-func ListRtcServices() {
+func ListRtcServices(rtc client.Client) error {
 
 	fmt.Println("listing Services")
 	services := &apiv1.ServiceList{}
 	err = rtc.List(context.Background(), services)
 	if err != nil {
-		fmt.Println("error fetching pods list")
+		return fmt.Errorf("error fetching pods list")
 	} else {
 		for _, each := range services.Items {
 			fmt.Println("name: ", each.Name, " Labels: ", each.Labels)
 		}
 	}
+	return nil
 }
 
-func CreateRtcServices() {
+func CreateRtcServices(rtc client.Client) error {
 
 	service := &apiv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
@@ -50,24 +46,26 @@ func CreateRtcServices() {
 	}
 	err = rtc.Create(context.Background(), service)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
+	return nil
 }
 
-func UpdateRtcService() {
+func UpdateRtcService(rtc client.Client) error {
 
 	svc := &apiv1.Service{}
 	err = rtc.Get(context.Background(), client.ObjectKey{
 		Name: "rtc-service",
 	}, svc)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	svc.Spec.Ports[0].Protocol = "UDP"
 	err = rtc.Update(context.Background(), svc)
+	return err
 }
 
-func DeleteRtcService() {
+func DeleteRtcService(rtc client.Client) error {
 
 	svc := &apiv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
@@ -76,6 +74,7 @@ func DeleteRtcService() {
 	}
 	err = rtc.Delete(context.Background(), svc)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
+	return nil
 }

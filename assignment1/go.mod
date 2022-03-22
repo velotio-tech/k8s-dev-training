@@ -1,12 +1,12 @@
-module github.com/k8s-dev-training/assignment1
+module github.com/hatred09/k8s-dev-training/assignment1
 
 go 1.17
 
 require (
-	k8s.io/api v0.23.4
-	k8s.io/apimachinery v0.23.4
-	k8s.io/client-go v0.23.4
-	k8s.io/utils v0.0.0-20211116205334-6203023598ed
+	k8s.io/api v0.23.5
+	k8s.io/apimachinery v0.23.5
+	k8s.io/client-go v0.23.5
+	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
 	sigs.k8s.io/controller-runtime v0.11.1
 )
 
