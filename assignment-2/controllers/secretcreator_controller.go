@@ -26,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"time"
 
 	//"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/event"
@@ -62,31 +63,22 @@ var (
 func (r *SecretCreatorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	fmt.Println("reconcile")
 	secretCreator := v1.SecretCreator{}
+	secretCreator.Status = v1.SecretCreatorStatus{}
 	var secret, secretToCheck corev1.Secret
-	if err := r.Get(ctx, req.NamespacedName, &secretCreator); err != nil {
-		r.Log.Error(err, "unable to fetch SecretCreator")
-		return ctrl.Result{}, client.IgnoreNotFound(err)
-	}
-	if err := r.Get(ctx, types.NamespacedName{Name: secretCreator.Spec.SecretName, Namespace: secretCreator.Spec.SecretNamespace}, &secret); err != nil {
-		r.Log.Error(err, "secret not found", secretCreator.Spec.SecretName)
-		return ctrl.Result{}, err
-	}
+
 	namespaces, err := r.GetNamespaces(ctx)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
-	if secretCreator.Status.State == "" {
-		secretCreator.Status.State = v1.Empty
-	}
-
-	if sec.Status.State == v1.Delete {
-		secretCreator.Status.State = v1.Delete
+	if sec != nil && sec.Status != secretCreator.Status && sec.Status.State == v1.Deleted {
+		secretCreator.Status.State = v1.Deleted
 	}
 
 	switch secretCreator.Status.State {
-	case v1.Delete:
-		if sec.Status.State == v1.Delete {
+	case v1.Deleted:
+		fmt.Println("\n\n entry")
+		if sec.Status.State == v1.Deleted {
 			if len(sec.Spec.IncludeNamespaces) != 0 {
 				for x := range sec.Spec.IncludeNamespaces {
 					if err := r.Get(ctx, types.NamespacedName{Name: sec.Spec.SecretName, Namespace: sec.Spec.IncludeNamespaces[x]}, &secretToCheck); err == nil {
@@ -105,15 +97,19 @@ func (r *SecretCreatorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 					}
 				}
 			}
-			sec.Status.State = v1.Empty
+			sec = nil
 			secretCreator.Status.State = v1.Empty
-			if err := r.Status().Update(ctx, &secretCreator); err != nil {
-				r.Log.Error(err, "unable to update status")
-				return ctrl.Result{}, err
-			}
 		}
-	case v1.Empty, v1.Created:
+	default:
+		if err := r.Get(ctx, req.NamespacedName, &secretCreator); err != nil {
+			r.Log.Error(err, "unable to fetch SecretCreator")
+			return ctrl.Result{}, client.IgnoreNotFound(err)
+		}
+		fmt.Println(req.NamespacedName, secretCreator, "==========================")
+
+		fmt.Println("___________", namespaces.Items)
 		if len(secretCreator.Spec.IncludeNamespaces) == 0 && len(secretCreator.Spec.ExcludeNamespaces) == 0 {
+			fmt.Println("entry")
 			for x := range namespaces.Items {
 				if err := r.Get(ctx, types.NamespacedName{Name: secretCreator.Spec.SecretName, Namespace: namespaces.Items[x].ObjectMeta.Name}, &secretToCheck); err != nil {
 					if err = r.CreateSecret(ctx, namespaces.Items[x].ObjectMeta.Name,
@@ -123,6 +119,7 @@ func (r *SecretCreatorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 				}
 			}
 		} else if len(secretCreator.Spec.IncludeNamespaces) == 0 && len(secretCreator.Spec.ExcludeNamespaces) != 0 {
+			fmt.Println("exclude")
 			for x := range namespaces.Items {
 				if !contains(secretCreator.Spec.ExcludeNamespaces, namespaces.Items[x].ObjectMeta.Name) {
 					if err = r.Get(ctx, types.NamespacedName{Name: secretCreator.Spec.SecretName, Namespace: namespaces.Items[x].ObjectMeta.Name}, &secretToCheck); err != nil {
@@ -141,6 +138,7 @@ func (r *SecretCreatorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			}
 		} else {
 			for x := range namespaces.Items {
+				fmt.Println("--------", x)
 				if namespaces.Items[x].ObjectMeta.Name != secret.ObjectMeta.Namespace {
 					if contains(secretCreator.Spec.IncludeNamespaces, namespaces.Items[x].ObjectMeta.Name) {
 						if err = r.Get(ctx, types.NamespacedName{Name: secretCreator.Spec.SecretName, Namespace: namespaces.Items[x].ObjectMeta.Name}, &secretToCheck); err != nil {
@@ -159,55 +157,57 @@ func (r *SecretCreatorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 				}
 			}
 		}
-		secretCreator.Status.State = v1.Created
-		if err := r.Status().Update(ctx, &secretCreator); err != nil {
-			r.Log.Error(err, "unable to update status")
-			return ctrl.Result{}, err
+		if secretCreator.Status.State == "" {
+			secretCreator.Status.State = v1.Created
+		}
+		if secretCreator.Status.LastUpdatedTime == nil {
+			secretCreator.Status.LastUpdatedTime = &metav1.Time{Time: time.Now()}
+		}
+		if secretCreator.Status.SecretNameSpace == "" {
+			secretCreator.Status.SecretNameSpace = secretCreator.Spec.SecretNamespace
 		}
 	}
+
+	if err := r.Status().Update(ctx, &secretCreator); err != nil {
+		return ctrl.Result{}, err
+	}
+	fmt.Println("++++++++++++++", ctrl.Result{}, secretCreator.Status, "+++++++++++++++")
 	return ctrl.Result{}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *SecretCreatorReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	indexerFunc := func(rawObj client.Object) []string {
-		secret := rawObj.(*corev1.Secret)
-		owner := metav1.GetControllerOf(secret)
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &corev1.Secret{}, jobOwnerKey, func(rawObj client.Object) []string {
+		// grab the job object, extract the owner...
+		job := rawObj.(*corev1.Secret)
+		owner := metav1.GetControllerOf(job)
 		if owner == nil {
 			return nil
 		}
+		// ...make sure it's a CronJob...
 		if owner.APIVersion != v1.GroupVersion.String() || owner.Kind != "Secret" {
 			return nil
 		}
+		fmt.Println(owner.Name)
+		// ...and if so, return it
 		return []string{owner.Name}
-	}
-
-	err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1.SecretCreator{}, jobOwnerKey, indexerFunc)
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 
 	deleteFunction := func(e event.DeleteEvent) bool {
+		fmt.Println("\n\n delete event")
 		if _, ok := e.Object.(*v1.SecretCreator); ok {
 			sec = e.Object.(*v1.SecretCreator)
-			sec.Status.State = v1.Delete
+			sec.Status = v1.SecretCreatorStatus{}
+			sec.Status.State = v1.Deleted
 			return true
 		}
 		return false
 	}
 
-	updateFunction := func(e event.UpdateEvent) bool {
-		return true
-	}
-
-	createFunction := func(e event.CreateEvent) bool {
-		return true
-	}
-
 	p := predicate.Funcs{
 		DeleteFunc: deleteFunction,
-		CreateFunc: createFunction,
-		UpdateFunc: updateFunction,
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).For(&v1.SecretCreator{}).Owns(&corev1.Secret{}).WithEventFilter(p).Complete(r)

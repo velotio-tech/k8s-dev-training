@@ -23,12 +23,11 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-type CreatorState string
-
 const (
-	Empty   CreatorState = "Empty"
-	Created CreatorState = "Created"
-	Delete  CreatorState = "Delete"
+	Empty   = "Empty"
+	Created = "Created"
+	Deleted = "Deleted"
+	Updated = "Updated"
 )
 
 // SecretCreatorSpec defines the desired state of SecretCreator
@@ -46,7 +45,7 @@ type SecretCreatorSpec struct {
 	//+optional
 	ExcludeNamespaces []string `json:"excludeNamespaces,omitempty"`
 
-	// +kubebuilder:validation:MinLength=3
+	// +optional
 	IncludeNamespaces []string `json:"includeNamespaces,omitempty"`
 }
 
@@ -54,8 +53,11 @@ type SecretCreatorSpec struct {
 type SecretCreatorStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	SecretNameSpace string `json:"secretNameSpace,omitempty"`
+	//+optional
+	LastUpdatedTime *metav1.Time `json:"lastUpdatedTime,omitempty"`
 
-	State CreatorState `json:"creatorState,omitempty "`
+	State string `json:"creatorState,omitempty"`
 }
 
 //+kubebuilder:object:root=true
