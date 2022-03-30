@@ -178,18 +178,15 @@ func (r *SecretCreatorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 // SetupWithManager sets up the controller with the Manager.
 func (r *SecretCreatorReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &corev1.Secret{}, jobOwnerKey, func(rawObj client.Object) []string {
-		// grab the job object, extract the owner...
 		job := rawObj.(*corev1.Secret)
 		owner := metav1.GetControllerOf(job)
 		if owner == nil {
 			return nil
 		}
-		// ...make sure it's a CronJob...
 		if owner.APIVersion != v1.GroupVersion.String() || owner.Kind != "Secret" {
 			return nil
 		}
 		fmt.Println(owner.Name)
-		// ...and if so, return it
 		return []string{owner.Name}
 	}); err != nil {
 		return err
