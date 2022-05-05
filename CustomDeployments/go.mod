@@ -24,7 +24,7 @@ require (
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
-	github.com/go-logr/logr v1.2.0 // indirect
+	github.com/go-logr/logr v1.2.0 // direct
 	github.com/go-logr/zapr v1.2.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -62,7 +62,7 @@ require (
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
-	k8s.io/api v0.23.0 // indirect
+	k8s.io/api v0.23.0 // direct
 	k8s.io/apiextensions-apiserver v0.23.0 // indirect
 	k8s.io/component-base v0.23.0 // indirect
 	k8s.io/klog/v2 v2.30.0 // indirect

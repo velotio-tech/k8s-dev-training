@@ -122,7 +122,7 @@ func (r *CustomDeploymentReconciler) cleanupOwnedResources(ctx context.Context, 
 
 	// List all deployment resources owned by this customDeployment
 	var deployments apps.DeploymentList
-	if err := r.List(ctx, &deployments, client.InNamespace(customDeployment.Namespace), client.MatchingFields(deploymentOwnerKey, customDeployment.Name)); err != nil {
+	if err := r.List(ctx, &deployments, client.InNamespace(customDeployment.Namespace), client.MatchingFields{deploymentOwnerKey: customDeployment.Name}); err != nil {
 		return err
 	}
 
@@ -186,6 +186,25 @@ var (
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *CustomDeploymentReconciler) SetupWithManager(mgr ctrl.Manager) error {
+
+	// revisit again, not understood fully
+	indexerFunc := func(mgr client.Object) []string {
+		depl := mgr.(*apps.Deployment)
+		owner := metav1.GetControllerOf(depl)
+		if owner == nil {
+			return nil
+		}
+		if owner.APIVersion != custdepv1.GroupVersion.String() || owner.Kind != "CustomDeployment" {
+			return nil
+		}
+		return []string{owner.Name}
+	}
+
+	err := mgr.GetFieldIndexer().IndexField(context.Background(), &apps.Deployment{}, deploymentOwnerKey, indexerFunc)
+	if err != nil {
+		return err
+	}
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&custdepv1.CustomDeployment{}).
 		Complete(r)
