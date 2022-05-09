@@ -95,6 +95,7 @@ func DeleteDeployment(deploymentsClient v1.DeploymentInterface, deploymentname s
 
 func CreateService(controllerClient client.Client) string {
 	// Create service port, not adding any selector
+	// TODO(shubham): need more understanding of context and why its needed
 	newService := apiv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test-service",
@@ -102,14 +103,14 @@ func CreateService(controllerClient client.Client) string {
 		Spec: apiv1.ServiceSpec{
 			Ports: []apiv1.ServicePort{
 				{
-					Name:     "service-port",
+					Name:     "port",
 					Protocol: "TCP",
 					Port:     80,
 				},
 			},
 		},
 	}
-	err := controllerClient.Create(context.Background(), &newService)
+	err := controllerClient.Create(context.TODO(), &newService)
 	if err != nil {
 		panic(err)
 	}
@@ -130,7 +131,7 @@ func ListServices(controllerClient client.Client) {
 func EditServiceByName(controllerClient client.Client, serviceName string) {
 	fmt.Println("Editing service %s", serviceName)
 	service := &apiv1.Service{}
-	err := controllerClient.Get(context.Background(), client.ObjectKey{
+	err := controllerClient.Get(context.TODO(), client.ObjectKey{
 		Name: serviceName,
 	}, service)
 	if err != nil {
@@ -152,7 +153,7 @@ func DeleteService(controllerClient client.Client, serviceName string) {
 			Name: serviceName,
 		},
 	}
-	err := controllerClient.Delete(context.Background(), service)
+	err := controllerClient.Delete(context.TODO(), service)
 	if err != nil {
 		panic(err)
 	}
