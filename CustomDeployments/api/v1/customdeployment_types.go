@@ -29,6 +29,8 @@ type CustomDeploymentSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 	
 	ImageName string `json:"imageName"`
+
+	//+kubebuilder:validation:default:=1
 	Replicas  int32  `json:"replicas"`
 }
 
@@ -42,6 +44,8 @@ const (
 type CustomDeploymentStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	
+	//+kubebuilder:validation:Enum:=PENDING;RUNNING;ERROR
 	Phase string `json:"phase"`
 }
 
