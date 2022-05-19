@@ -8,12 +8,13 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	v1 "k8s.io/client-go/kubernetes/typed/apps/v1"
 	"k8s.io/client-go/util/retry"
 )
+	//Create deployment client for default namespace
+var deploymentsClient v1.DeploymentInterface = clientset.AppsV1().Deployments("default")
 
-func CreateDeployment(deploymentsClient v1.DeploymentInterface, clientset *kubernetes.Clientset) {
+func CreateDeployment() error {
 	//Deploying a new deployment to cluster
 	var replicas int32 = 2
 	deployment := &appsv1.Deployment{
@@ -48,12 +49,12 @@ func CreateDeployment(deploymentsClient v1.DeploymentInterface, clientset *kuber
 
 	result, err := deploymentsClient.Create(context.TODO(), deployment, metav1.CreateOptions{})
 	if err != nil {
-		log.Printf("could not deploy Deployment: %v", err)
+		return err
 	}
 	fmt.Printf("Created deployment %q.\n", result.GetObjectMeta().GetName())
-
+	return nil
 }
-func ListDeployments(deploymentsClient v1.DeploymentInterface, clientset *kubernetes.Clientset) {
+func ListDeployments() {
 	list, err := deploymentsClient.List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Printf("Failed to list Deployment: %v", err)
@@ -62,7 +63,7 @@ func ListDeployments(deploymentsClient v1.DeploymentInterface, clientset *kubern
 		fmt.Println(d.Name)
 	}
 }
-func EditDeployment(deploymentsClient v1.DeploymentInterface, clientset *kubernetes.Clientset) {
+func EditDeployment() {
 	deploymentName := "busybox-deployment"
 	var updatedReplicaCount int32 = 1
 
@@ -82,7 +83,7 @@ func EditDeployment(deploymentsClient v1.DeploymentInterface, clientset *kuberne
 		fmt.Println("Deployment updated.")
 	}
 }
-func DeleteDeployment(deploymentsClient v1.DeploymentInterface, clientset *kubernetes.Clientset) {
+func DeleteDeployment() {
 	deploymentName := "busybox-deployment"
 	deletePolicy := metav1.DeletePropagationForeground
 	err := deploymentsClient.Delete(context.TODO(), deploymentName, metav1.DeleteOptions{PropagationPolicy: &deletePolicy})

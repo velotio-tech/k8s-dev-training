@@ -14,9 +14,12 @@ import (
 	controllerruntimeconfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
-func main() {
+var clientset *kubernetes.Clientset
+var controllerClient client.Client
+var Number int
 
-	/* ######################## Cient-Go Section starts ######################## */
+// https://www.digitalocean.com/community/tutorials/understanding-init-in-go
+func init() {
 
 	// Creating client for client-go crud
 	rules := clientcmd.NewDefaultClientConfigLoadingRules()
@@ -27,61 +30,9 @@ func main() {
 	} else {
 		fmt.Println("client for client-go crud created")
 	}
-	clientset := kubernetes.NewForConfigOrDie(config)
+	clientset = kubernetes.NewForConfigOrDie(config)
 
-	//-------------------- POD SECTION ----------------------
-
-	//Create pod client for default namespace
-	podClient := clientset.CoreV1().Pods("default")
-	// Creating a Pod
-	clientgocrud.CreatePod(podClient, clientset)
-	// time.Sleep(10 * time.Second)
-	//Listing all pods
-	clientgocrud.ListPods(podClient, clientset)
-
-	//Editing a Pod
-	clientgocrud.EditPod(podClient, clientset)
-
-	//Deleting a Pod
-	clientgocrud.DeletePod(podClient, clientset)
-
-	//-------------------- DEPLOYMENT SECTION ----------------------
-	//Create deployment client for default namespace
-	deploymentsClient := clientset.AppsV1().Deployments("default")
-
-	//Creating a deployment
-	clientgocrud.CreateDeployment(deploymentsClient, clientset)
-
-	//Listing all deployments
-	clientgocrud.ListDeployments(deploymentsClient, clientset)
-
-	//Editing a deployment
-	clientgocrud.EditDeployment(deploymentsClient, clientset)
-
-	//Deleting a deployment
-	clientgocrud.DeleteDeployment(deploymentsClient, clientset)
-
-	//-------------------- SERVICE SECTION ----------------------
-	//Create service client for default namespace
-	serviceClient := clientset.CoreV1().Services("default")
-
-	//Creating a service
-	clientgocrud.CreateService(serviceClient, clientset)
-
-	//Listing all services
-	clientgocrud.ListServices(serviceClient, clientset)
-
-	//Editing a service
-	clientgocrud.EditService(serviceClient, clientset)
-
-	//Deleting a service
-	clientgocrud.DeleteService(serviceClient, clientset)
-
-	/* ######################## Cient-Go Section ends ######################## */
-
-	/* ######################## Controller-runtime Section starts ######################## */
-
-	fmt.Println("Going to create controller runtime client")
+	// Creating client for crud using controller-runtime
 	controllerClient, err := client.New(controllerruntimeconfig.GetConfigOrDie(), client.Options{})
 	if err != nil {
 		log.Printf("could not create controller runtime client: %v", err)
@@ -90,10 +41,75 @@ func main() {
 	}
 	//set namespace to default namespace
 	controllerClient = client.NewNamespacedClient(controllerClient, apiv1.NamespaceDefault)
+}
+func main() {
+
+	/* ######################## Cient-Go Section starts ######################## */
+
+	//-------------------- POD SECTION ----------------------
+
+	//passing client variable to other package only once
+	clientgocrud.SetClient(clientset)
+	// Creating a Pod
+	if err := clientgocrud.CreatePod(); err != nil {
+		fmt.Println("cannot create pod")
+		panic(err)
+	}
+	// time.Sleep(10 * time.Second)
+	//Listing all pods
+	if err := clientgocrud.ListPods(); err != nil {
+		fmt.Println("cannot list pods", err)
+	}
+
+	//Editing a Pod
+	clientgocrud.EditPod()
+
+	//Deleting a Pod
+	clientgocrud.DeletePod()
+
+	//-------------------- DEPLOYMENT SECTION ----------------------
+	//Creating a deployment
+	if err := clientgocrud.CreateDeployment(); err != nil {
+		fmt.Println("cannot create deployment")
+		panic(err)
+	}
+
+	//Listing all deployments
+	clientgocrud.ListDeployments()
+
+	//Editing a deployment
+	clientgocrud.EditDeployment()
+
+	//Deleting a deployment
+	clientgocrud.DeleteDeployment()
+
+	//-------------------- SERVICE SECTION ----------------------
+
+	//Creating a service
+	if err := clientgocrud.CreateService(); err != nil {
+		fmt.Println("cannot create service")
+		panic(err)
+	}
+
+	//Listing all services
+	clientgocrud.ListServices()
+
+	//Editing a service
+	clientgocrud.EditService()
+
+	//Deleting a service
+	clientgocrud.DeleteService()
+
+	/* ######################## Cient-Go Section ends ######################## */
+
+	/* ######################## Controller-runtime Section starts ######################## */
 
 	//-------------------- POD SECTION ----------------------
 	//Creating a pod
-	controllerruntimecrud.CreatePod(controllerClient)
+	if err := controllerruntimecrud.CreatePod(controllerClient); err != nil {
+		fmt.Println("cannot create pod")
+		panic(err)
+	}
 	//Listing all pods
 	controllerruntimecrud.ListPods(controllerClient)
 	//Editing a pod
@@ -103,7 +119,10 @@ func main() {
 
 	//-------------------- DEPLOYMENT SECTION ----------------------
 	//Creating a deployment
-	controllerruntimecrud.CreateDeployment(controllerClient)
+	if err := controllerruntimecrud.CreateDeployment(controllerClient); err != nil {
+		fmt.Println("cannot create deployment")
+		panic(err)
+	}
 	//Listing all deployments
 	controllerruntimecrud.ListDeployments(controllerClient)
 	//Editing a deployment
@@ -113,7 +132,10 @@ func main() {
 
 	//-------------------- SERVICE SECTION ----------------------
 	//Creating a service
-	controllerruntimecrud.CreateService(controllerClient)
+	if err := controllerruntimecrud.CreateService(controllerClient); err != nil {
+		fmt.Println("cannot create service")
+		panic(err)
+	}
 	//Listing all services
 	controllerruntimecrud.ListServices(controllerClient)
 	//Editing a service

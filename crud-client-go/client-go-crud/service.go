@@ -7,12 +7,14 @@ import (
 
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/util/retry"
 )
 
-func CreateService(serviceClient v1.ServiceInterface, clientset *kubernetes.Clientset) {
+//Create service client for default namespace
+var serviceClient v1.ServiceInterface = clientset.CoreV1().Services("default")
+
+func CreateService() error {
 
 	//reference: https://stackoverflow.com/questions/53874921/kubernetes-client-go-creating-services-and-enpdoints
 	service := apiv1.Service{
@@ -31,13 +33,14 @@ func CreateService(serviceClient v1.ServiceInterface, clientset *kubernetes.Clie
 	}
 	_, err := clientset.CoreV1().Services("default").Create(context.Background(), &service, metav1.CreateOptions{})
 	if err != nil {
-		log.Printf("cannot create service: %v", err)
+		return err
 	} else {
 		fmt.Println("service created successfully.")
+		return nil
 	}
 }
 
-func ListServices(serviceClient v1.ServiceInterface, clientset *kubernetes.Clientset) {
+func ListServices() {
 	list, err := serviceClient.List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Printf("failed to list services: %v", err)
@@ -47,7 +50,7 @@ func ListServices(serviceClient v1.ServiceInterface, clientset *kubernetes.Clien
 	}
 }
 
-func EditService(serviceClient v1.ServiceInterface, clientset *kubernetes.Clientset) {
+func EditService() {
 	serviceName := "port-service"
 	//reference: https://pkg.go.dev/k8s.io/client-go/util/retry#RetryOnConflict
 	retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
@@ -67,7 +70,7 @@ func EditService(serviceClient v1.ServiceInterface, clientset *kubernetes.Client
 	}
 }
 
-func DeleteService(serviceClient v1.ServiceInterface, clientset *kubernetes.Clientset) {
+func DeleteService() {
 	serviceName := "port-service"
 	deletePolicy := metav1.DeletePropagationForeground
 	err := serviceClient.Delete(context.TODO(), serviceName, metav1.DeleteOptions{PropagationPolicy: &deletePolicy})

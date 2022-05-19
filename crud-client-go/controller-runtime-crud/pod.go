@@ -22,7 +22,7 @@ func ListPods(controllerClient client.Client) {
 	}
 }
 
-func CreatePod(controllerClient client.Client) {
+func CreatePod(controllerClient client.Client) error {
 	// the yaml file content will come here
 	newPod := &corev1.Pod{
 		// parav this will be the same as client-go
@@ -38,9 +38,10 @@ func CreatePod(controllerClient client.Client) {
 	}
 	err := controllerClient.Create(context.Background(), newPod)
 	if err != nil {
-		log.Printf("cannot create new pod using controller runtime: %v", err)
+		return err
 	} else {
 		fmt.Println("POD Successfully Created.")
+		return nil
 	}
 }
 

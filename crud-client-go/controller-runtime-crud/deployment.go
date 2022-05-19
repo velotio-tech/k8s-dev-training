@@ -11,7 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func CreateDeployment(controllerClient client.Client) {
+func CreateDeployment(controllerClient client.Client) error {
 
 	//same content from client-go file
 	var replicas int32 = 2
@@ -54,9 +54,10 @@ func CreateDeployment(controllerClient client.Client) {
 
 	err := controllerClient.Create(context.Background(), newDeployment)
 	if err != nil {
-		log.Printf("could not deploy Deployment: %v", err)
+		return err
 	} else {
 		fmt.Println("Deployment Created")
+		return nil
 	}
 
 }

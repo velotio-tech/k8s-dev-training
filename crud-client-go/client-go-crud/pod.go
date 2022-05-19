@@ -11,7 +11,15 @@ import (
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-func CreatePod(podClient v1.PodInterface, clientset *kubernetes.Clientset) {
+var clientset *kubernetes.Clientset
+
+func SetClient(client *kubernetes.Clientset) {
+	clientset = client
+}
+
+var podClient v1.PodInterface = clientset.CoreV1().Pods("default")
+
+func CreatePod() error {
 
 	fmt.Println("Deploying a pod to the cluster")
 	newPod := &corev1.Pod{
@@ -31,23 +39,21 @@ func CreatePod(podClient v1.PodInterface, clientset *kubernetes.Clientset) {
 	}
 
 	_, err := podClient.Create(context.Background(), newPod, metav1.CreateOptions{})
-	if err != nil {
-		log.Println("cannot create new pod: ", err)
-	} else {
-		fmt.Println("Pod deployed successfully.")
-	}
+	return err
 }
-func ListPods(podClient v1.PodInterface, clientset *kubernetes.Clientset) {
+func ListPods() error {
 	fmt.Println("Listing Running Pods in the cluster")
 	podList, err := podClient.List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		log.Println("cannot get list of running pods:", err)
+		return err
 	}
 	for _, n := range podList.Items {
 		fmt.Println(n.Name)
 	}
+	return nil
 }
-func EditPod(podClient v1.PodInterface, clientset *kubernetes.Clientset) {
+func EditPod() {
 	podname := "busybox-pod"
 	updateOwner := "kaushal"
 	result, err := podClient.Get(context.TODO(), podname, metav1.GetOptions{})
@@ -65,7 +71,7 @@ func EditPod(podClient v1.PodInterface, clientset *kubernetes.Clientset) {
 		fmt.Println("Pod updated successfully.")
 	}
 }
-func DeletePod(podClient v1.PodInterface, clientset *kubernetes.Clientset) {
+func DeletePod() {
 	podname := "busybox-pod"
 	err := podClient.Delete(context.TODO(), podname, metav1.DeleteOptions{})
 	if err != nil {
