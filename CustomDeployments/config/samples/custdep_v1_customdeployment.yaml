@@ -1,0 +1,6 @@
+apiVersion: custdep.paravkaushal.dev/v1
+kind: CustomDeployment
+metadata:
+  name: customdeployment-sample
+spec:
+  # TODO(user): Add fields here

@@ -1,0 +1,16 @@
+domain: paravkaushal.dev
+layout:
+- go.kubebuilder.io/v3
+projectName: customdeployments
+repo: paravkaushal.dev/CustomDeployments
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: paravkaushal.dev
+  group: custdep
+  kind: CustomDeployment
+  path: paravkaushal.dev/CustomDeployments/api/v1
+  version: v1
+version: "3"
