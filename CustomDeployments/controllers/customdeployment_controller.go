@@ -18,7 +18,9 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -51,6 +53,23 @@ func (r *CustomDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	// TODO(user): your logic here
 
+	instance := &custdepv1.CustomDeployment{}
+	err := r.Get(context.TODO(), req.NamespacedName, instance)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			// object not found, could have been deleted after
+			// reconcile request, hence don't requeue
+			return ctrl.Result{}, nil
+		}
+		// error reading the object, requeue the request
+		return ctrl.Result{}, err
+	}
+	//set phase to pending
+	fmt.Println("current status:")
+	if instance.Status.Phase == "" {
+		instance.Status.Phase = custdepv1.DeploymentPending
+		fmt.Println("updated Status:", instance.Status.Phase)
+	}
 	return ctrl.Result{}, nil
 }
 
