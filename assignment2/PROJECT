@@ -1,0 +1,16 @@
+domain: assignment.com
+layout:
+- go.kubebuilder.io/v3
+projectName: assignment2
+repo: assignment.com/bookstore
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: assignment.com
+  group: myapps
+  kind: BookStore
+  path: assignment.com/bookstore/api/v1
+  version: v1
+version: "3"
