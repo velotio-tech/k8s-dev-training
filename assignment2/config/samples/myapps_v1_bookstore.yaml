@@ -1,0 +1,9 @@
+apiVersion: myapps.assignment.com/v1
+kind: BookStore
+metadata:
+  name: bookstore-sample
+spec:
+  name: readme
+  location: pune
+  owner: noone
+  established: "2021-06-14"
