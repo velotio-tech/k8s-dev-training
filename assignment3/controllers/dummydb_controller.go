@@ -79,6 +79,14 @@ func (r *DummyDBReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		reqLogger.Error(err, "Failed to create/update bookstore resources")
 		return reconcile.Result{}, err
 	}
+
+	// update status
+	dummyDB.Status.AvailabeSize = int32(dummyDB.Spec.Size.AsApproximateFloat64())
+
+	dummyDB.Status.ReadyReplicas = dummyDB.Spec.Replicas
+
+	dummyDB.Status.VolumeResizingInProgress = false
+
 	_ = r.Client.Status().Update(context.TODO(), dummyDB)
 
 	return ctrl.Result{}, nil
