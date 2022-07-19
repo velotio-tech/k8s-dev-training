@@ -31,7 +31,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	myappsv1 "assignment.com/dummydb/api/v1"
@@ -313,6 +315,19 @@ func getDummyDBSecret(dummyDB *myappsv1.DummyDB) *v1.Secret {
 // SetupWithManager sets up the controller with the Manager.
 func (r *DummyDBReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&myappsv1.DummyDB{}).
+		For(&myappsv1.DummyDB{}).WithEventFilter(disAllowReducingDBSize()).
 		Complete(r)
+}
+
+// disAllowReducingDBSize Ignore Update events that tries reduce size of DB (we don't want to allow reducing volume size)
+func disAllowReducingDBSize() predicate.Predicate {
+	return predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+
+			oldObj := e.ObjectOld.(*myappsv1.DummyDB)
+			newObj := e.ObjectNew.(*myappsv1.DummyDB)
+
+			return int32(newObj.Spec.Size.AsApproximateFloat64()) >= int32(oldObj.Spec.Size.AsApproximateFloat64())
+		},
+	}
 }
