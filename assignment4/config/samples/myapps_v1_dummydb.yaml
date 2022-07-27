@@ -1,0 +1,11 @@
+apiVersion: myapps.assignment.com/v1
+kind: DummyDB
+metadata:
+  name: dummydb-sample
+  namespace: system
+spec:
+  replicas: 1
+  size: 1
+  gvk:
+   kind: "StatefulSet"
+  adminPassword: adminadmin
