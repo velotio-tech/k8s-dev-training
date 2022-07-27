@@ -39,7 +39,7 @@ import (
 	myappsv1 "assignment.com/dummydb/api/v1"
 )
 
-var log = logf.Log.WithName("controller_bookstore")
+var log = logf.Log.WithName("controller_dummydb")
 
 // DummyDBReconciler reconciles a DummyDB object
 type DummyDBReconciler struct {
@@ -69,11 +69,52 @@ func (r *DummyDBReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	err := r.Client.Get(context.TODO(), req.NamespacedName, dummyDB)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			return reconcile.Result{}, nil
+
+			err = r.CleanUpPVCAfterDBRemoval(ctx, req)
+
+			if err != nil {
+				reqLogger.Error(err, "Failed to delete PVCs")
+			}
+
+			return reconcile.Result{}, err
 		}
 		// Error reading the object - requeue the request.
 		reqLogger.Error(err, "Failed to get dummydb object")
 		return reconcile.Result{}, err
+	}
+
+	dummydbFinalizer := "assignment.dummydb.io/finalizer"
+
+	// examine DeletionTimestamp to determine if object is under deletion
+	if dummyDB.ObjectMeta.DeletionTimestamp.IsZero() {
+		// The object is not being deleted, so if it does not have our finalizer,
+		// then lets add the finalizer and update the object. This is equivalent
+		// registering our finalizer.
+		if !controllerutil.ContainsFinalizer(dummyDB, dummydbFinalizer) {
+			controllerutil.AddFinalizer(dummyDB, dummydbFinalizer)
+			if err := r.Update(ctx, dummyDB); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+	} else {
+		// The object is being deleted
+		if controllerutil.ContainsFinalizer(dummyDB, dummydbFinalizer) {
+			// our finalizer is present, so lets handle any external dependency
+			if err := r.CleanUpPVCAfterDBRemoval(ctx, req); err != nil {
+				// if fail to delete the external dependency here, return with error
+				// so that it can be retried
+				return ctrl.Result{}, err
+			}
+
+			// remove our finalizer from the list and update it.
+			controllerutil.RemoveFinalizer(dummyDB, dummydbFinalizer)
+			if err := r.Update(ctx, dummyDB); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+
+		// Stop reconciliation as the item is being deleted
+		return ctrl.Result{}, nil
 	}
 
 	err = r.DummyDB(dummyDB)
@@ -312,22 +353,62 @@ func getDummyDBSecret(dummyDB *myappsv1.DummyDB) *v1.Secret {
 	return adminPasswordSecret
 }
 
+func (r *DummyDBReconciler) CleanUpPVCAfterDBRemoval(ctx context.Context, req ctrl.Request) error {
+
+	reqLogger := log.WithValues("Namespace", req.Namespace, "Name", req.Name)
+
+	pvcList := &corev1.PersistentVolumeClaimList{}
+
+	if err := r.List(ctx, pvcList, client.InNamespace(req.Namespace), client.MatchingFields{OwnerKey: OwnerValue}); err != nil {
+		reqLogger.Error(err, "unable to list pvcs")
+		return err
+	}
+
+	for _, pvc := range pvcList.Items {
+		err := r.Delete(ctx, &pvc)
+		if err != nil {
+			return err
+		} else {
+			reqLogger.Info("PVC deleted")
+			return nil
+		}
+	}
+
+	return nil
+}
+
+var (
+	OwnerKey   = ".metadata.controller"
+	OwnerValue = "DummyDB"
+)
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *DummyDBReconciler) SetupWithManager(mgr ctrl.Manager) error {
+
+	// PVC is created by statefulset and doesn't have resource owner referance set so setting an index for it.
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &corev1.PersistentVolumeClaim{}, OwnerKey, func(rawObj client.Object) []string {
+		return []string{OwnerValue}
+	}); err != nil {
+		return err
+	}
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&myappsv1.DummyDB{}).WithEventFilter(disAllowReducingDBSize()).
+		For(&myappsv1.DummyDB{}).WithEventFilter(onlyAllowSystemNS()).
 		Complete(r)
 }
 
-// disAllowReducingDBSize Ignore Update events that tries reduce size of DB (we don't want to allow reducing volume size)
-func disAllowReducingDBSize() predicate.Predicate {
+func onlyAllowSystemNS() predicate.Predicate {
 	return predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
-
-			oldObj := e.ObjectOld.(*myappsv1.DummyDB)
-			newObj := e.ObjectNew.(*myappsv1.DummyDB)
-
-			return int32(newObj.Spec.Size.AsApproximateFloat64()) >= int32(oldObj.Spec.Size.AsApproximateFloat64())
+			allowedNS := e.ObjectNew.GetNamespace()
+			return allowedNS == "system"
+		},
+		CreateFunc: func(e event.CreateEvent) bool {
+			allowedNS := e.Object.GetNamespace()
+			return allowedNS == "system"
+		},
+		DeleteFunc: func(e event.DeleteEvent) bool {
+			allowedNS := e.Object.GetNamespace()
+			return allowedNS == "system"
 		},
 	}
 }
