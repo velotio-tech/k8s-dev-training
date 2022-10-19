@@ -1,0 +1,12 @@
+apiVersion: k8s-assignment-2.my.domain/v2
+kind: FlightTicket
+metadata:
+  labels:
+    app.kubernetes.io/name: flightticket
+    app.kubernetes.io/instance: flightticket-sample
+    app.kubernetes.io/part-of: k8s-assignment-2
+    app.kuberentes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: k8s-assignment-2
+  name: flightticket-sample
+spec:
+  # TODO(user): Add fields here
