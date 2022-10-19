@@ -1,0 +1,27 @@
+# permissions for end users to view flighttickets.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: flightticket-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: k8s-assignment-2
+    app.kubernetes.io/part-of: k8s-assignment-2
+    app.kubernetes.io/managed-by: kustomize
+  name: flightticket-viewer-role
+rules:
+- apiGroups:
+  - k8s-assignment-2.my.domain
+  resources:
+  - flighttickets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - k8s-assignment-2.my.domain
+  resources:
+  - flighttickets/status
+  verbs:
+  - get
