@@ -1,0 +1,62 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.9.2
+  creationTimestamp: null
+  name: flighttickets.k8s-assignment-2.my.domain
+spec:
+  group: k8s-assignment-2.my.domain
+  names:
+    kind: FlightTicket
+    listKind: FlightTicketList
+    plural: flighttickets
+    singular: flightticket
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: FlightTicket is the Schema for the flighttickets API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: FlightTicketSpec defines the desired state of FlightTicket
+            properties:
+              from:
+                description: From - Departure location
+                type: string
+              number:
+                description: Number - Number of tickets for booking
+                maximum: 9
+                minimum: 0
+                type: integer
+              to:
+                description: To - Arrival location
+                type: string
+            type: object
+          status:
+            description: FlightTicketStatus defines the observed state of FlightTicket
+            properties:
+              bookingStatus:
+                type: string
+              fare:
+                type: integer
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
