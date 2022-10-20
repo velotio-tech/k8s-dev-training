@@ -28,6 +28,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -41,7 +42,8 @@ import (
 // FlightTicketReconciler reconciles a FlightTicket object
 type FlightTicketReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme   *runtime.Scheme
+	Recorder record.EventRecorder
 }
 
 //+kubebuilder:rbac:groups=k8s-assignment-2.my.domain,resources=flighttickets,verbs=get;list;watch;create;update;patch;delete
@@ -169,6 +171,8 @@ func (r *FlightTicketReconciler) FlightTicketGvk(flightTicket *k8sassignment2v1.
 				if err != nil {
 					return err
 				}
+				r.Recorder.Eventf(flightTicket, corev1.EventTypeNormal, "Created", "Created StatefulSet %v", flightTicketStatefulSet.Name)
+				log.Info("Created StatefulSet resource for FlightTicket")
 			} else {
 				log.Info("failed to get FlightTicket StatefulSet")
 				return err
@@ -185,8 +189,8 @@ func (r *FlightTicketReconciler) FlightTicketGvk(flightTicket *k8sassignment2v1.
 		}
 	case "Deployment":
 		flightTicketDeployment := getFlightTicketDeployment(flightTicket)
-		dss := &appsv1.Deployment{}
-		err := r.Client.Get(context.TODO(), types.NamespacedName{Name: flightTicketDeployment.Name, Namespace: flightTicketDeployment.Namespace}, dss)
+		deployment := &appsv1.Deployment{}
+		err := r.Client.Get(context.TODO(), types.NamespacedName{Name: flightTicketDeployment.Name, Namespace: flightTicketDeployment.Namespace}, deployment)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				log.Info("FlightTicket Deployment not found, will be created")
@@ -195,12 +199,14 @@ func (r *FlightTicketReconciler) FlightTicketGvk(flightTicket *k8sassignment2v1.
 				if err != nil {
 					return err
 				}
+				r.Recorder.Eventf(flightTicket, corev1.EventTypeNormal, "Created", "Created deployment %v", flightTicketDeployment.Name)
+				log.Info("Created Deployment resource for FlightTicket")
 			} else {
 				log.Info("failed to get FlightTicket Deployment")
 				return err
 			}
-		} else if !reflect.DeepEqual(flightTicketDeployment.Spec, dss.Spec) {
-			flightTicketDeployment.ObjectMeta = dss.ObjectMeta
+		} else if !reflect.DeepEqual(flightTicketDeployment.Spec, deployment.Spec) {
+			flightTicketDeployment.ObjectMeta = deployment.ObjectMeta
 			controllerutil.SetControllerReference(flightTicket, flightTicketDeployment, r.Scheme)
 			err = r.Client.Update(context.TODO(), flightTicketDeployment)
 			if err != nil {
