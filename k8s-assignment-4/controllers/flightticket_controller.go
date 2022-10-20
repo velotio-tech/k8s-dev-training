@@ -209,7 +209,6 @@ func (r *FlightTicketReconciler) FlightTicketGvk(flightTicket *k8sassignment2v1.
 			log.Info("FlightTicket Deployment updated")
 		}
 	default:
-		// log.Info("FlightTicket Deployment updated")
 		str := fmt.Sprintf("Invalid value for kind (must be either StatefulSet or Deployment): %v\n", flightTicket.Spec.Gvk.Kind)
 		log.Error(nil, str)
 	}
