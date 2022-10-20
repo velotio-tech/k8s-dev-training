@@ -70,6 +70,7 @@ spec:
                 - InProgress
                 - Done
                 - Failed
+                - Cancelled
                 type: string
               fare:
                 type: integer
