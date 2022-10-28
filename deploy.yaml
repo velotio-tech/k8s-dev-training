@@ -1,0 +1,57 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: velo-assignment-access
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  - pods
+  - services
+  verbs:
+  - get
+  - list
+  - create
+  - update
+  - delete
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: assignment-sa
+  namespace: ecommerce
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: velo-assignment-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: velo-assignment-access
+subjects:
+- kind: ServiceAccount
+  name: assignment-sa
+  namespace: ecommerce
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app.kubernetes.io/instance: ecommerce
+    app.kubernetes.io/name: ass1
+  name: ass1
+  namespace: ecommerce
+spec:
+  containers:
+  - image: k8:latest
+    imagePullPolicy: IfNotPresent
+    name: assignment-1
+    ports:
+    - containerPort: 80
+      name: http
+      protocol: TCP
+  restartPolicy: Never
+  serviceAccount: assignment-sa
