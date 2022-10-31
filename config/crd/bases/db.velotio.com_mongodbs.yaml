@@ -53,6 +53,9 @@ spec:
             description: MongoDBStatus defines the observed state of MongoDB
             properties:
               condition:
+                enum:
+                - healty
+                - unhealthy
                 type: string
             type: object
         type: object

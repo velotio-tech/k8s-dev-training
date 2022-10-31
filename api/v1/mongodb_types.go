@@ -31,14 +31,16 @@ type MongoDBSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Foo is an example field of MongoDB. Edit mongodb_types.go to remove/update
-	InitUser                 string `json:"init_user,omitempty"`
-	InitPassword             string `json:"init_password,omitempty"`
-	MaxUsers                 int    `json:"max_users"`
-	MaxConcurrentConnections int    `json:"max_concurrent_connections"`
+	InitUser     string `json:"init_user,omitempty"`
+	InitPassword string `json:"init_password,omitempty"`
+	//+kubebuilder:validation:default:=1
+	MaxUsers                 int `json:"max_users"`
+	MaxConcurrentConnections int `json:"max_concurrent_connections"`
 }
 
 // MongoDBStatus defines the observed state of MongoDB
 type MongoDBStatus struct {
+	//+kubebuilder:validation:Enum:=healty;unhealthy
 	Condition string `json:"condition,omitempty"`
 }
 
