@@ -1,0 +1,6 @@
+domain: domo.civo.io
+layout:
+- go.kubebuilder.io/v3
+projectName: k8s-assignment2
+repo: operator-demo
+version: "3"
