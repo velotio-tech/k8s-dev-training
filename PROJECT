@@ -3,4 +3,14 @@ layout:
 - go.kubebuilder.io/v3
 projectName: k8s-assignment2
 repo: operator-demo
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: domo.civo.io
+  group: demo
+  kind: DemoVolume
+  path: operator-demo/api/v1
+  version: v1
 version: "3"
