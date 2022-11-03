@@ -1,0 +1,17 @@
+apiVersion: db.velotio.com/v1
+kind: MongoDB
+metadata:
+  labels:
+    app.kubernetes.io/name: mongodb
+    app.kubernetes.io/instance: mongodb-sample
+    app.kubernetes.io/part-of: k8s-dev-training
+    app.kuberentes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: k8s-dev-training
+  name: mongodb-sample
+spec:
+  gvk:
+    apiVersion: v1
+    kind: Pod
+  init_user: user1
+  init_password: user1pass
+  max_concurrent_connections: 1000
