@@ -9,6 +9,9 @@ metadata:
     app.kubernetes.io/created-by: k8s-dev-training
   name: mongodb-sample
 spec:
+  gvk:
+    apiVersion: v1
+    kind: Pod
   init_user: user1
   init_password: user1pass
-  max_concurrent_connections: 5000
+  max_concurrent_connections: 1000

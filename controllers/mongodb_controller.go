@@ -19,11 +19,16 @@ package controllers
 import (
 	"context"
 
+	v1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	dbv1 "velotio.com/database/api/v1"
 )
@@ -53,10 +58,21 @@ func (r *MongoDBReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	dbInstance := &dbv1.MongoDB{}
 	if err := r.Get(ctx, types.NamespacedName{Namespace: req.Namespace, Name: req.Name}, dbInstance); err != nil {
+		if apierrors.IsNotFound(err) {
+			logger.Info("MongoDB resource not found")
+			return ctrl.Result{}, nil
+		}
 		logger.Error(err, "get db instance")
+		return ctrl.Result{}, err
+	}
+
+	if err := r.upsertMongoPod(ctx, dbInstance); err != nil {
+		logger.Error(err, "error while processing GVK")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+
 	dbInstance.Status.Condition = "healthy"
+	dbInstance.Status.Phase = "running"
 	if err := r.Status().Update(ctx, dbInstance); err != nil {
 		logger.Error(err, "update status")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -66,9 +82,41 @@ func (r *MongoDBReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	return ctrl.Result{}, nil
 }
 
+func eventProcessorPredicate() predicate.Predicate {
+	return predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			// Ignore updates to CR status in which case metadata.Generation does not change
+			return e.ObjectOld.GetGeneration() != e.ObjectNew.GetGeneration()
+		},
+		DeleteFunc: func(e event.DeleteEvent) bool {
+			// Evaluates to false if the object has been confirmed deleted.
+			return !e.DeleteStateUnknown
+		},
+	}
+}
+
+func indexer(o client.Object) []string {
+	p, ok := o.(*v1.Pod)
+	if !ok {
+		return nil
+	}
+	owner := metav1.GetControllerOf(p)
+	if owner == nil {
+		return nil
+	}
+	if owner.APIVersion != dbv1.GroupVersion.Identifier() || owner.Kind != "MongoDB" {
+		return nil
+	}
+	return []string{owner.Name}
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *MongoDBReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1.Pod{}, ".metadata.ownerReferences", indexer); err != nil {
+		return err
+	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&dbv1.MongoDB{}).
+		WithEventFilter(eventProcessorPredicate()).
 		Complete(r)
 }

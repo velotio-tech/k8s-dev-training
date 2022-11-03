@@ -35,17 +35,33 @@ spec:
           spec:
             description: MongoDBSpec defines the desired state of MongoDB
             properties:
+              gvk:
+                description: GVK denotes GroupVersionKind for the nested resource.
+                properties:
+                  apiVersion:
+                    type: string
+                  kind:
+                    type: string
+                required:
+                - apiVersion
+                - kind
+                type: object
+                x-kubernetes-embedded-resource: true
               init_password:
+                description: InitPassword is a password field used to initialize the
+                  database
                 type: string
               init_user:
-                description: Foo is an example field of MongoDB. Edit mongodb_types.go
-                  to remove/update
+                description: InitUser is a username field used to initialize the database
                 type: string
               max_concurrent_connections:
+                maximum: 10000
+                minimum: 100
                 type: integer
               max_users:
                 type: integer
             required:
+            - gvk
             - max_concurrent_connections
             - max_users
             type: object
@@ -54,8 +70,14 @@ spec:
             properties:
               condition:
                 enum:
-                - healty
+                - healthy
                 - unhealthy
+                type: string
+              phase:
+                enum:
+                - running
+                - terminating
+                - pending
                 type: string
             type: object
         type: object

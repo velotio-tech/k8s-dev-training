@@ -11,6 +11,17 @@ metadata:
   name: proxy-role
 rules:
 - apiGroups:
+  - ""
+  resources:
+  - "pods"
+  verbs:
+  - create
+  - list
+  - get
+  - watch
+  - update
+  - delete
+- apiGroups:
   - authentication.k8s.io
   resources:
   - tokenreviews

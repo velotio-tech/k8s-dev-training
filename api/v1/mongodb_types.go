@@ -18,30 +18,49 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
-const ConcurrentConnectionsLimit = 10000
 
 // MongoDBSpec defines the desired state of MongoDB
 type MongoDBSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of MongoDB. Edit mongodb_types.go to remove/update
-	InitUser     string `json:"init_user,omitempty"`
+	// GVK denotes GroupVersionKind for the nested resource.
+	//+kubebuilder:validation:XEmbeddedResource
+	GVK GVK `json:"gvk"`
+	// InitUser is a username field used to initialize the database
+	InitUser string `json:"init_user,omitempty"`
+	// InitPassword is a password field used to initialize the database
 	InitPassword string `json:"init_password,omitempty"`
 	//+kubebuilder:validation:default:=1
-	MaxUsers                 int `json:"max_users"`
+	MaxUsers int `json:"max_users"`
+	//+kubebuilder:validation:Maximum:=10000
+	//+kubebuilder:validation:Minimum:=100
 	MaxConcurrentConnections int `json:"max_concurrent_connections"`
 }
 
 // MongoDBStatus defines the observed state of MongoDB
 type MongoDBStatus struct {
-	//+kubebuilder:validation:Enum:=healty;unhealthy
+	//+kubebuilder:validation:Enum:=healthy;unhealthy
 	Condition string `json:"condition,omitempty"`
+	//+kubebuilder:validation:Enum:=running;terminating;pending
+	Phase string `json:"phase,omitempty"`
+}
+
+// GVK unambiguously identifies a kind.  It doesn't anonymously include GroupVersion
+// to avoid automatic coercion.  It doesn't use a GroupVersion to avoid custom marshalling
+type GVK struct {
+	APIVersion string `json:"apiVersion"`
+	Kind       string `json:"kind"`
+}
+
+func (gvk *GVK) GroupVersion() schema.GroupVersion {
+	result, _ := schema.ParseGroupVersion(gvk.APIVersion)
+	return result
 }
 
 //+kubebuilder:object:root=true
