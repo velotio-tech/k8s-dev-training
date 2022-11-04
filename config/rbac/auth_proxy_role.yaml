@@ -11,9 +11,9 @@ metadata:
   name: proxy-role
 rules:
 - apiGroups:
-  - ""
+  - "apps"
   resources:
-  - "pods"
+  - "deployments"
   verbs:
   - create
   - list
@@ -21,6 +21,14 @@ rules:
   - watch
   - update
   - delete
+- apiGroups:
+  - "batch"
+  resources:
+  - "jobs"
+  verbs:
+  - list
+  - get
+  - watch
 - apiGroups:
   - authentication.k8s.io
   resources:

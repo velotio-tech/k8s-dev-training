@@ -65,7 +65,7 @@ func (r *MongoDB) ValidateCreate() error {
 		mongodblog.Info("init user OR init password validation failed")
 		return errors.New("init user or init password cannot be empty")
 	}
-	if r.Spec.GVK.Kind != "Pod" {
+	if r.Spec.GVK.Kind != "Deployment" {
 		mongodblog.Info(fmt.Sprintf("kind %s not supported", r.Spec.GVK.Kind))
 		return errors.New("unsupported kind")
 	}
@@ -80,7 +80,7 @@ func (r *MongoDB) ValidateUpdate(old runtime.Object) error {
 		mongodblog.Info("attemplting to update init user OR init password, validation failed")
 		return fmt.Errorf("init user or init password cannot be updated")
 	}
-	if r.Spec.GVK.Kind != "Pod" || r.Spec.GVK.APIVersion != "v1" {
+	if r.Spec.GVK.Kind != "Deployment" || r.Spec.GVK.APIVersion != "apps/v1" {
 		mongodblog.Info(fmt.Sprintf("kind %s OR APIVerions %s not supported", r.Spec.GVK.Kind, r.Spec.GVK.APIVersion))
 		return errors.New("unsupported kind")
 	}

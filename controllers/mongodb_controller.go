@@ -19,13 +19,14 @@ package controllers
 import (
 	"context"
 
+	batchv1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
@@ -38,6 +39,9 @@ type MongoDBReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
+
+const indexedField = ".metadata.labels.job-name"
+const finalizer = "mongodbs.db.velotio.com/dangling_cleaner"
 
 //+kubebuilder:rbac:groups=db.velotio.com,resources=mongodbs,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=db.velotio.com,resources=mongodbs/status,verbs=get;update;patch
@@ -59,16 +63,34 @@ func (r *MongoDBReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	dbInstance := &dbv1.MongoDB{}
 	if err := r.Get(ctx, types.NamespacedName{Namespace: req.Namespace, Name: req.Name}, dbInstance); err != nil {
 		if apierrors.IsNotFound(err) {
-			logger.Info("MongoDB resource not found")
+			logger.Info("MongoDB resource not found, probably deleted")
 			return ctrl.Result{}, nil
 		}
 		logger.Error(err, "get db instance")
 		return ctrl.Result{}, err
 	}
-
+	// resource is marked for deletion, pending due to finalizer
+	if !dbInstance.DeletionTimestamp.IsZero() {
+		if err := r.cleanupNonLinkedResource(ctx, req.Namespace); err != nil {
+			return ctrl.Result{}, err
+		}
+		if controllerutil.RemoveFinalizer(dbInstance, finalizer) {
+			if err := r.Update(ctx, dbInstance); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+		return ctrl.Result{}, nil
+	}
+	// create or update request, update the child deployment
 	if err := r.upsertMongoPod(ctx, dbInstance); err != nil {
 		logger.Error(err, "error while processing GVK")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	if controllerutil.AddFinalizer(dbInstance, finalizer) {
+		if err := r.Update(ctx, dbInstance); err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 
 	dbInstance.Status.Condition = "healthy"
@@ -80,6 +102,19 @@ func (r *MongoDBReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	logger.Info("finished reconcilation...")
 	return ctrl.Result{}, nil
+}
+
+func (r *MongoDBReconciler) cleanupNonLinkedResource(ctx context.Context, ns string) error {
+	list := batchv1.JobList{}
+	if err := r.List(ctx, &list, &client.MatchingFields{indexedField: "dummy-job"}, &client.ListOptions{Namespace: ns}); err != nil {
+		return err
+	}
+	for _, v := range list.Items {
+		if err := r.Delete(ctx, &v); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func eventProcessorPredicate() predicate.Predicate {
@@ -96,23 +131,20 @@ func eventProcessorPredicate() predicate.Predicate {
 }
 
 func indexer(o client.Object) []string {
-	p, ok := o.(*v1.Pod)
+	p, ok := o.(*v1.Service)
 	if !ok {
 		return nil
 	}
-	owner := metav1.GetControllerOf(p)
-	if owner == nil {
+	indexValue, ok := p.Labels["job-name"]
+	if !ok {
 		return nil
 	}
-	if owner.APIVersion != dbv1.GroupVersion.Identifier() || owner.Kind != "MongoDB" {
-		return nil
-	}
-	return []string{owner.Name}
+	return []string{indexValue}
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *MongoDBReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1.Pod{}, ".metadata.ownerReferences", indexer); err != nil {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &batchv1.Job{}, indexedField, indexer); err != nil {
 		return err
 	}
 	return ctrl.NewControllerManagedBy(mgr).

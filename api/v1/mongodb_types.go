@@ -37,6 +37,7 @@ type MongoDBSpec struct {
 	// InitPassword is a password field used to initialize the database
 	InitPassword string `json:"init_password,omitempty"`
 	//+kubebuilder:validation:default:=1
+	//+kubebuilder:validation:Optional
 	MaxUsers int `json:"max_users"`
 	//+kubebuilder:validation:Maximum:=10000
 	//+kubebuilder:validation:Minimum:=100

@@ -10,8 +10,8 @@ metadata:
   name: mongodb-sample
 spec:
   gvk:
-    apiVersion: v1
-    kind: Pod
+    apiVersion: apps/v1
+    kind: Deployment
   init_user: user1
   init_password: user1pass
   max_concurrent_connections: 1000
