@@ -1,3 +1,10 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> init
+>>>>>>> updated
 
 # Binaries for programs and plugins
 *.exe
@@ -24,3 +31,13 @@ Dockerfile.cross
 *.swp
 *.swo
 *~
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+=======
+.DS_Store
+node_modules
+>>>>>>> init
+>>>>>>> init
+>>>>>>> updated
