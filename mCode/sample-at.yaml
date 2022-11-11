@@ -1,0 +1,7 @@
+apiVersion: cnat.ishankhare.dev/v1alpha1
+kind: At
+metadata:
+  name: at-sample
+spec:
+  schedule: "2020-11-16T10:12:00Z"
+  command: "echo hello world to aman!"
