@@ -35,7 +35,7 @@ func ListConfigmaps(clientset client.Client, ctx context.Context) {
 		fmt.Println("Error during configmap list operation, error: ", err)
 		return
 	}
-	fmt.Println("Total configmap : ", len(cmap.Items))
+	fmt.Println("Total configmap: ", len(cmap.Items))
 	for _, item := range cmap.Items {
 		fmt.Println(item.Name)
 	}
