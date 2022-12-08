@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: k8s-crud-svcacc
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: k8s-crud-role
+rules:
+- apiGroups:
+  - ""
+  - "apps"
+  resources:
+  - services
+  - deployments
+  - configmaps
+  verbs:
+  - list
+  - get
+  - create
+  - delete
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: k8s-crud-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: k8s-crud-role
+subjects:
+- kind: ServiceAccount
+  name: k8s-crud-svcacc
+  namespace: default
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-crud-deployment
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: k8s-app-lbldemo
+  template:
+    metadata:
+      labels:
+        app: k8s-app-lbldemo
+    spec:
+      serviceAccountName: k8s-crud-svcacc
+      containers:
+      - name: k8s-crud-container
+        image: priyankass99/k8s-res-crud:latest
+        ports:
+        - containerPort: 80
