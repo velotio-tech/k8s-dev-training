@@ -35,6 +35,17 @@ spec:
           spec:
             description: AppdeployerSpec defines the desired state of Appdeployer
             properties:
+              gvk:
+                description: GroupVersionKind - for the nested resource.
+                properties:
+                  kind:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - kind
+                - version
+                type: object
               image:
                 type: string
               name:
@@ -47,6 +58,7 @@ spec:
               service-type:
                 type: string
             required:
+            - gvk
             - image
             - name
             - replicas
@@ -56,9 +68,7 @@ spec:
             description: AppdeployerStatus defines the observed state of Appdeployer
             properties:
               app-progress:
-                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
-                  of cluster Important: Run "make" to regenerate code after modifying
-                  this file'
+                description: use of markers markers more info - https://book.kubebuilder.io/reference/markers.html
                 enum:
                 - created
                 - deleted

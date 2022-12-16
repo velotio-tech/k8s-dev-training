@@ -34,6 +34,10 @@ type AppdeployerSpec struct {
 	Image       string `json:"image"`
 	ServiceType string `json:"service-type"`
 	Port        int    `json:"port,omitempty"`
+
+	// GroupVersionKind - for the nested resource.
+	//+kubebuilder:validation:XEmbeededResource
+	GVK GroupVersionKind `json:"gvk"`
 }
 
 // AppdeployerStatus defines the observed state of Appdeployer
@@ -63,6 +67,11 @@ type AppdeployerList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Appdeployer `json:"items"`
+}
+
+type GroupVersionKind struct {
+	Version string `json:"version"`
+	Kind    string `json:"kind"`
 }
 
 func init() {

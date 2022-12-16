@@ -32,7 +32,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
@@ -120,7 +122,7 @@ func (r *AppdeployerReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	// Create a deployment
 	var replicas int32 = int32(webapp.Spec.Replicas)
 	new_deployment := &appsv1.Deployment{
-		TypeMeta: metav1.TypeMeta{Kind: "Deployment"},
+		TypeMeta: metav1.TypeMeta{Kind: "Deploymint"},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      webapp.Spec.Name + "-deployment",
 			Namespace: webapp.Namespace,
@@ -167,9 +169,42 @@ func (r *AppdeployerReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	return ctrl.Result{}, nil
 }
 
+func processorPredicate() predicate.Predicate {
+	return predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			return e.ObjectOld.GetGeneration() != e.ObjectNew.GetGeneration()
+		},
+		DeleteFunc: func(e event.DeleteEvent) bool {
+			// Evaluates to false if the object has been confirmed deleted.
+			return !e.DeleteStateUnknown
+		},
+	}
+}
+
+func indexerFunc(obj client.Object) []string {
+	dep, ok := obj.(*appsv1.Deployment)
+	if !ok {
+		return nil
+	}
+
+	owner := metav1.GetControllerOf(dep)
+	if owner == nil {
+		return nil
+	}
+	if owner.APIVersion != webappv1.GroupVersion.Identifier() || owner.Kind != "AppDeployer" {
+		return nil
+	}
+	return []string{owner.Name}
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *AppdeployerReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &appsv1.Deployment{}, ".metadata.ownerReferences", indexerFunc); err != nil {
+		return err
+	}
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&webappv1.Appdeployer{}).
+		WithEventFilter(processorPredicate()).
 		Complete(r)
 }

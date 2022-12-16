@@ -9,6 +9,9 @@ metadata:
     app.kubernetes.io/created-by: assignment2-solution
   name: appdeployer-sample
 spec:
+  gvk:
+    version: apps/v1
+    kind: Deployment
   name: "webapp-0"
   replicas: 2
   image: "nginx"
