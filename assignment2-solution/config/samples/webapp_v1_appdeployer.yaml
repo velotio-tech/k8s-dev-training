@@ -8,12 +8,13 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: assignment2-solution
   name: appdeployer-sample
+  namespace: k8s-ass
 spec:
   gvk:
     version: apps/v1
     kind: Deployment
   name: "webapp-0"
   replicas: 2
-  image: "nginx"
+  image: "bitnami/kubectl"
   service-type: "NodePort"
   port: 8080

@@ -22,3 +22,22 @@ rules:
   - subjectaccessreviews
   verbs:
   - create
+- apiGroups:
+  - "batch"
+  resources:
+  - "jobs"
+  verbs:
+  - list
+  - get
+  - watch
+- apiGroups:
+  - "apps"
+  resources:
+  - "deployments"
+  verbs:
+  - create
+  - list
+  - get
+  - watch
+  - update
+  - delete

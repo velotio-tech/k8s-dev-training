@@ -22,8 +22,11 @@ import (
 
 	webappv1 "demo/api/v1"
 
+	batchv1 "k8s.io/api/batch/v1"
+
 	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -60,6 +63,9 @@ type AppdeployerReconciler struct {
 
 var logger = ctrl.Log.WithName("controllerlog")
 
+// var finalizer = "appdeployer.webapp.demo/dangling_cleaner"
+var finalizer = "appdeployers.webapp.velotio.ass2/dangling_cleaner"
+
 func (r *AppdeployerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
@@ -86,6 +92,19 @@ func (r *AppdeployerReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 		r.Delete(context.TODO(), del_svc)
 		fmt.Println("Service deleted successfully!!!")
+
+		// resource is marked for deletion, pending due to finalizer
+		if !webapp.DeletionTimestamp.IsZero() {
+			if err := r.resourceCleanup(ctx, webapp.Namespace); err != nil {
+				return ctrl.Result{}, err
+			}
+
+			controllerutil.RemoveFinalizer(webapp, "webapp-finalizer")
+			if err = r.Update(ctx, webapp); err != nil {
+				return ctrl.Result{}, err
+			}
+			return ctrl.Result{}, nil
+		}
 
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
@@ -145,8 +164,19 @@ func (r *AppdeployerReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 						{
 							Image: webapp.Spec.Image,
 							Name:  webapp.Spec.Name + "-container",
+							Command: []string{
+								"kubectl",
+								"-n",
+								"k8s-ass",
+								"create",
+								"job",
+								"webapp-job-0",
+								"--image",
+								"busybox",
+							},
 						},
 					},
+					ServiceAccountName: "webapp-sa",
 				},
 			},
 		},
@@ -160,13 +190,42 @@ func (r *AppdeployerReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 	fmt.Println("Deployment created successfully!!!")
 
+	//Add the finalizer
+	if !controllerutil.ContainsFinalizer(webapp, "webapp-finalizer") {
+		if controllerutil.AddFinalizer(webapp, finalizer) {
+			if err = r.Update(ctx, webapp); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+	}
+
 	webapp.Status.AppProgress = "created"
 	err = r.Status().Update(ctx, webapp)
 	if err != nil {
 		logger.Error(err, "Error while updating the status.")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+
 	return ctrl.Result{}, nil
+}
+
+func (r *AppdeployerReconciler) resourceCleanup(ctx context.Context, namespace string) error {
+	list := batchv1.JobList{}
+
+	err := r.List(ctx, &list, &client.MatchingFields{".metadata.labels.job-name": "webapp-job-0"}, &client.ListOptions{Namespace: namespace})
+	if err != nil {
+		return err
+	}
+
+	// delete the jobs sub/child resources
+	for _, item := range list.Items {
+		err = r.Delete(ctx, &item)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func processorPredicate() predicate.Predicate {
@@ -182,24 +241,26 @@ func processorPredicate() predicate.Predicate {
 }
 
 func indexerFunc(obj client.Object) []string {
-	dep, ok := obj.(*appsv1.Deployment)
+	svc, ok := obj.(*v1.Service)
 	if !ok {
 		return nil
 	}
 
-	owner := metav1.GetControllerOf(dep)
-	if owner == nil {
+	// owner := metav1.GetControllerOf(dep)
+	// if owner.APIVersion != webappv1.GroupVersion.Identifier() || owner.Kind != "AppDeployer" {
+	// 	return nil
+	// }
+
+	indexValue, ok := svc.Labels["job-name"]
+	if !ok {
 		return nil
 	}
-	if owner.APIVersion != webappv1.GroupVersion.Identifier() || owner.Kind != "AppDeployer" {
-		return nil
-	}
-	return []string{owner.Name}
+	return []string{indexValue}
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *AppdeployerReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &appsv1.Deployment{}, ".metadata.ownerReferences", indexerFunc); err != nil {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &batchv1.Job{}, ".metadata.labels.job-name", indexerFunc); err != nil {
 		return err
 	}
 
