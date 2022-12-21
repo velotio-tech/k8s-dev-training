@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -60,22 +61,33 @@ func (r *DeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	deployment := &apiv1.Deployment{}
 	if err := r.Get(ctx, req.NamespacedName, deployment); err != nil {
-		logger.Error(err, "[🚨] Unable to fetch deployment")
+		logger.Info("[🚨] Unable to fetch deployment")
 
 		// unable to find deployment
 		// check pod created by deployment
 		// 	if pod is created or left from deployment delete it
 		//  else do nothing
-		filter := &corev1.Pod{
-			ObjectMeta: metav1.ObjectMeta{
-				Labels: map[string]string{
-					"apps.velotio.com.deployment": deployment.Spec.Selector,
-				},
-			},
+		var pods corev1.PodList
+		if err := r.List(ctx, &pods, client.InNamespace(req.Namespace)); err != nil {
+			logger.Error(err, "unable to fetch list of pods")
 		}
 
-		err = r.Delete(ctx, filter)
-		return ctrl.Result{}, err
+		errcount := 0
+		for i := 0; i < len(pods.Items); i++ {
+			err := r.Delete(ctx, &pods.Items[i])
+			logger.Info("[Deleting] deployment", "pods", pods.Items[i].ObjectMeta.Name)
+			if err != nil {
+				errcount++
+			}
+		}
+		logger.Info("[Deleted] deployment pods")
+
+		if errcount != 0 {
+			return ctrl.Result{}, fmt.Errorf("pods deletetion failed")
+		}
+
+		return ctrl.Result{}, nil
+
 	}
 
 	// list all the pods
