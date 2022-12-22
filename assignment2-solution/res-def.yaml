@@ -1,0 +1,79 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: webapp-cr
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+- apiGroups:
+  - "batch"
+  resources:
+  - job
+  verbs:
+  - get
+  - list
+  - create
+  - update
+  - delete
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: webapp-sa
+  namespace: k8s-ass
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: webapp-crb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: webapp-cr
+subjects:
+- kind: ServiceAccount
+  name: webapp-sa
+  namespace: k8s-ass
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: webapp
+  name: webapp
+  namespace: k8s-ass
+  finalizers:
+  - kubernetes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapp
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      containers:
+      - image: bitnami/kubectl
+        imagePullPolicy: IfNotPresent
+        name: kubectl
+        command:
+        - kubectl
+        - -n
+        - k8s-ass
+        - expose
+        - deployment
+        - webapp
+        - --port
+        - "8080"
+        resources: {}
+      serviceAccount: webapp-sa
+      serviceAccountName: webapp-sa
+status: {}
