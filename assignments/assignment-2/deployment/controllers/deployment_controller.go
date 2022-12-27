@@ -26,7 +26,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -110,7 +112,7 @@ func (r *DeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	deployment.Status.ReadyReplicas = deployment.Spec.Replicas
 	deployment.Status.Replicas = deployment.Spec.Replicas
 
-	return ctrl.Result{}, nil
+	return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
 }
 
 func (r *DeploymentReconciler) provisionPods(ctx context.Context, req ctrl.Request, deployment *apiv1.Deployment, loggger logr.Logger, replicas int32) error {
@@ -121,8 +123,8 @@ func (r *DeploymentReconciler) provisionPods(ctx context.Context, req ctrl.Reque
 
 		pod := &corev1.Pod{
 			TypeMeta: metav1.TypeMeta{
-				Kind:       "Pod",
-				APIVersion: "v1",
+				Kind:       deployment.Spec.GroupVersionKind.Kind,
+				APIVersion: deployment.Spec.GroupVersionKind.Version,
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "apps.velotio.com.deployment.pod" + randomString(5),
@@ -164,6 +166,27 @@ func randomString(n int) string {
 	return string(b)
 }
 
+func predicatefunc() predicate.Predicate {
+	return predicate.Funcs{
+		CreateFunc: func(ce event.CreateEvent) bool {
+			fmt.Println("🍟 [create evant]")
+			return true
+		},
+		UpdateFunc: func(ue event.UpdateEvent) bool {
+			fmt.Println("🍟 [update evant]")
+			return true
+		},
+		DeleteFunc: func(de event.DeleteEvent) bool {
+			fmt.Printf("🍟 [delete evant] %+v\n", de.Object)
+			return true
+		},
+		GenericFunc: func(ge event.GenericEvent) bool {
+			fmt.Println("🍟 [generic evant]")
+			return true
+		},
+	}
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *DeploymentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
@@ -171,5 +194,6 @@ func (r *DeploymentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&apiv1.Deployment{}).
+		WithEventFilter(predicatefunc()).
 		Complete(r)
 }

@@ -21,17 +21,51 @@ import (
 )
 
 type Container struct {
+
+	// This field specify the selecltor for image template.
 	Selector string `json:"selector,omitempty"`
-	Name     string `json:"name,omitempty"`
-	Image    string `json:"image,omitempty"`
-	Port     int    `json:"port,omitempty"`
+
+	// +kubebuilder:validation:MaxLength=15
+	// +kubebuilder:validation:MinLength=1
+
+	// Field name specify the name of container
+	Name string `json:"name,omitempty"`
+
+	// Image fields pulll the image from specify registery for deployment
+	Image string `json:"image,omitempty"`
+
+	// Specify the port on container that expose to the outside
+	Port int `json:"port,omitempty"`
 }
 
 // DeploymentSpec defines the desired state of Deployment
 type DeploymentSpec struct {
-	Replicas  int32     `json:"replicas,omitempty"`
-	Selector  string    `json:"selector,omitempty"`
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=10
+
+	// Total number of replicas to be create. default (1)
+	Replicas int32 `json:"replicas,omitempty"`
+
+	// Selector to choose the replicas pods
+	Selector string `json:"selector,omitempty"`
+
 	Container Container `json:"container,omitempty"`
+
+	// +kubebuilder:validation:Required
+
+	// Specify the group version kind of the CRD
+	GroupVersionKind GroupVersionKind `json:"gvk,omitempty"`
+}
+
+type GroupVersionKind struct {
+	// +kubebuilder:validation:Required
+	Group string `json:"group"`
+
+	// +kubebuilder:validation:Required
+	Version string `json:"version"`
+
+	// +kubebuilder:validation:Required
+	Kind string `json:"kind"`
 }
 
 // DeploymentStatus defines the observed state of Deployment

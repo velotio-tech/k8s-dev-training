@@ -9,6 +9,10 @@ metadata:
     app.kubernetes.io/created-by: deployment
   name: deployment
 spec:
+  gvk:
+    group: "apps"
+    version: "v1"
+    kind: "Pod"
   replicas: 2
   selector: frontend
   container: 
