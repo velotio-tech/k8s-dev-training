@@ -1,0 +1,19 @@
+apiVersion: apps.velotio.com/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: deployment
+    app.kubernetes.io/instance: deployment-sample
+    app.kubernetes.io/part-of: deployment
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: deployment
+  name: deployment
+spec:
+  replicas: 2
+  selector: frontend
+  container: 
+    selector: frontend
+    name: nginx
+    image: nginx 
+    port: 80
+
