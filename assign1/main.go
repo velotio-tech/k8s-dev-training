@@ -1,135 +1,141 @@
 package main
 
 import (
-	"context"
+	clientgo "assig1/client-go"
+	crt "assig1/controller-runtime"
+	"assig1/models"
 	"fmt"
+	"log"
 
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/util/retry"
-
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func main() {
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		panic(err.Error())
-	}
+	// client-go related ops
+	go func() {
+		specs := &models.ClientGoEssentials{
+			Namespace:      corev1.NamespaceDefault,
+			ServiceName:    "my-service",
+			PodName:        "my-pod",
+			DeploymentName: "my-deployment",
+		}
+		client, err := clientgo.NewClientGoClient(specs)
+		if err != nil {
+			log.Println("failed to initialize new client-go : ", err)
+			return
+		}
 
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
+		// create pod
+		createdPod, err := client.CreatePod()
+		if err != nil {
+			log.Println("failed to create the pod : ", err)
+			return
+		}
+		log.Printf("created pod details:  %v\n", createdPod)
 
-	controllerConfig := ctrl.GetConfigOrDie()
-	controllerClient, err := client.New(controllerConfig, client.Options{})
-	if err != nil {
-		panic(err.Error())
-	}
+		// create service
+		createService, err := client.CreateService()
+		if err != nil {
+			log.Println("failed to create the service : ", err)
+			return
+		}
+		log.Printf("created service details:  %v\n", createService)
 
-	pod := &corev1.Pod{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      "example-pod",
-			Namespace: "default",
-		},
-		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{
-				{
-					Name:  "nginx",
-					Image: "nginx",
-				},
-			},
-		},
-	}
-	// Create a Pod
-	createdPod, err := clientset.CoreV1().Pods("default").Create(context.Background(), pod, v1.CreateOptions{})
-	if err != nil {
-		panic(err.Error())
-	}
-	fmt.Println("Created Pod:", createdPod.Name)
+		// create deployment
+		createdDeployment, err := client.CreateDeployment()
+		if err != nil {
+			log.Println("failed to create the deployment : ", err)
+			return
+		}
+		log.Printf("created deploment details:  %v\n", createdDeployment)
 
-	// Get a Pod
-	foundPod, err := clientset.CoreV1().Pods("default").Get(context.Background(), "example-pod", v1.GetOptions{})
-	if err != nil {
-		panic(err.Error())
-	}
-	fmt.Println("Found Pod:", foundPod.Name)
+		// get pods
+		allPods, err := client.GetPods()
+		if err != nil {
+			log.Println("failed to get all pods : ", err)
+			return
+		}
+		fmt.Printf("all pods : %v\n", allPods)
 
-	// Update a Pod
-	retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		foundPod.Spec.Containers[0].Image = "nginx:latest"
-		_, updateErr := clientset.CoreV1().Pods("default").Update(context.Background(), foundPod, v1.UpdateOptions{})
-		return updateErr
-	})
-	if retryErr != nil {
-		panic(retryErr.Error())
-	}
-	fmt.Println("Updated Pod image")
+		allServices, err := client.GetServices()
+		if err != nil {
+			log.Println("failed to get all servcies : ", err)
+			return
+		}
+		fmt.Printf("all services : %v\n", allServices)
 
-	// Delete a Pod
-	deletePolicy := v1.DeletePropagationForeground
-	if err := clientset.CoreV1().Pods("default").Delete(context.Background(), "example-pod", v1.DeleteOptions{
-		PropagationPolicy: &deletePolicy,
-	}); err != nil {
-		panic(err.Error())
-	}
-	fmt.Println("Deleted Pod")
+		allDeployments, err := client.GetDeployments()
+		if err != nil {
+			log.Println("failed to get all deployments : ", err)
+			return
+		}
+		fmt.Printf("all deployments : %v\n", allDeployments)
 
-	// Example operations using controller-runtime
-	deployment := &appsv1.Deployment{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      "example-deployment",
-			Namespace: "default",
-		},
-		Spec: appsv1.DeploymentSpec{
-			Replicas: func(i int32) *int32 { return &i }(2),
-			Selector: &v1.LabelSelector{
-				MatchLabels: map[string]string{"app": "example"},
-			},
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: v1.ObjectMeta{
-					Labels: map[string]string{"app": "example"},
-				},
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						{
-							Name:  "nginx",
-							Image: "nginx",
-						},
-					},
-				},
-			},
-		},
-	}
+		// update ops
+		err = client.UpdatePod(specs.PodName)
+		if err != nil {
+			log.Println("failed to update the pod : ", err)
+			return
+		}
 
-	// Create a Deployment using controller-runtime client
-	if err := controllerClient.Create(context.Background(), deployment); err != nil {
-		panic(err.Error())
-	}
-	fmt.Println("Created Deployment")
+		err = client.UpdateService(specs.ServiceName)
+		if err != nil {
+			log.Println("failed to update the servcie : ", err)
+			return
+		}
 
-	// Get a Deployment using controller-runtime client
-	foundDeployment := &appsv1.Deployment{}
-	if err := controllerClient.Get(context.Background(), client.ObjectKey{Namespace: "default", Name: "example-deployment"}, foundDeployment); err != nil {
-		panic(err.Error())
-	}
-	fmt.Println("Found Deployment:", foundDeployment.Name)
+		err = client.UpdateDeployment(specs.DeploymentName)
+		if err != nil {
+			log.Println("failed to update the deployment : ", err)
+			return
+		}
 
-	// Update a Deployment using controller-runtime client
-	foundDeployment.Spec.Replicas = func(i int32) *int32 { return &i }(3)
-	if err := controllerClient.Update(context.Background(), foundDeployment); err != nil {
-		panic(err.Error())
-	}
-	fmt.Println("Updated Deployment")
+		// delete ops
+		err = client.DeletePod(specs.PodName)
+		if err != nil {
+			log.Println("failed to delete the pod : ", err)
+			return
+		}
 
-	// Delete a Deployment using controller-runtime client
-	if err := controllerClient.Delete(context.Background(), foundDeployment); err != nil {
-		panic(err.Error())
-	}
-	fmt.Println("Deleted Deployment")
+		err = client.DeleteService(specs.ServiceName)
+		if err != nil {
+			log.Println("failed to delete the servcie : ", err)
+			return
+		}
+
+		err = client.DeleteDeployment(specs.DeploymentName)
+		if err != nil {
+			log.Println("failed to delete the deployment : ", err)
+			return
+		}
+	}()
+
+	// controller-runtime related ops
+
+	go func() {
+		podName := "pod-crt"
+		crtClient, err := crt.NewCRTClient(corev1.NamespaceDefault)
+		if err != nil {
+			log.Println("failed to initialize new client-go : ", err)
+			return
+		}
+
+		err = crtClient.CreatePod(podName)
+		if err != nil {
+			log.Println("failed to create the pod : ", err)
+			return
+		}
+		podDetails, err := crtClient.GetPod(podName)
+		if err != nil {
+			log.Println("failed to get the pod details : ", err)
+			return
+		}
+		fmt.Printf("retrived pod details : %v\n", podDetails)
+
+		err = crtClient.UpdatePod(podName)
+		if err != nil {
+			log.Println("failed to get the update pod details : ", err)
+			return
+		}
+	}()
 }
