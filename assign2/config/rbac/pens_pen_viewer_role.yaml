@@ -1,0 +1,27 @@
+# permissions for end users to view pens.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: pen-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: assign2
+    app.kubernetes.io/part-of: assign2
+    app.kubernetes.io/managed-by: kustomize
+  name: pen-viewer-role
+rules:
+- apiGroups:
+  - pens.assgn2.com
+  resources:
+  - pens
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - pens.assgn2.com
+  resources:
+  - pens/status
+  verbs:
+  - get

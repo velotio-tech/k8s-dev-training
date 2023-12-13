@@ -1,0 +1,27 @@
+# permissions for end users to view books.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: book-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: assign2
+    app.kubernetes.io/part-of: assign2
+    app.kubernetes.io/managed-by: kustomize
+  name: book-viewer-role
+rules:
+- apiGroups:
+  - books.assgn2.com
+  resources:
+  - books
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - books.assgn2.com
+  resources:
+  - books/status
+  verbs:
+  - get

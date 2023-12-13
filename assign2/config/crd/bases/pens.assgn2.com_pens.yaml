@@ -1,0 +1,60 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.13.0
+  name: pens.pens.assgn2.com
+spec:
+  group: pens.assgn2.com
+  names:
+    kind: Pen
+    listKind: PenList
+    plural: pens
+    singular: pen
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: Pen is the Schema for the pens API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: PenSpec defines the desired state of Pen
+            properties:
+              color:
+                type: string
+              name:
+                type: string
+            required:
+            - color
+            - name
+            type: object
+          status:
+            description: PenStatus defines the observed state of Pen
+            properties:
+              available:
+                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                  of cluster Important: Run "make" to regenerate code after modifying
+                  this file'
+                type: boolean
+            required:
+            - available
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

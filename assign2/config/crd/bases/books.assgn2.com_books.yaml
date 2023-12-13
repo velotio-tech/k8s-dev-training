@@ -1,0 +1,88 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.13.0
+  name: books.books.assgn2.com
+spec:
+  group: books.assgn2.com
+  names:
+    kind: Book
+    listKind: BookList
+    plural: books
+    singular: book
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: Book is the Schema for the books API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: BookSpec defines the desired state of Book
+            properties:
+              author:
+                type: string
+              pages:
+                format: int32
+                type: integer
+              publishDate:
+                format: date-time
+                type: string
+              reference:
+                description: ReferenceGVK holds information about other resources
+                  in the cluster
+                properties:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - group
+                - kind
+                - name
+                - version
+                type: object
+              title:
+                description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                  Important: Run "make" to regenerate code after modifying this file'
+                type: string
+            required:
+            - author
+            - pages
+            - publishDate
+            - title
+            type: object
+          status:
+            description: BookStatus defines the observed state of Book
+            properties:
+              available:
+                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                  of cluster Important: Run "make" to regenerate code after modifying
+                  this file'
+                type: boolean
+            required:
+            - available
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
