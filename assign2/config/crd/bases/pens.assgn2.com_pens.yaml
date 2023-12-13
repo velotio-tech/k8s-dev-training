@@ -4,20 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.13.0
-  name: books.books.assgn2.com
+  name: pens.pens.assgn2.com
 spec:
-  group: books.assgn2.com
+  group: pens.assgn2.com
   names:
-    kind: Book
-    listKind: BookList
-    plural: books
-    singular: book
+    kind: Pen
+    listKind: PenList
+    plural: pens
+    singular: pen
   scope: Namespaced
   versions:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: Book is the Schema for the books API
+        description: Pen is the Schema for the pens API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -32,46 +32,18 @@ spec:
           metadata:
             type: object
           spec:
-            description: BookSpec defines the desired state of Book
+            description: PenSpec defines the desired state of Pen
             properties:
-              author:
+              color:
                 type: string
-              pages:
-                format: int32
-                type: integer
-              publishDate:
-                format: date-time
-                type: string
-              reference:
-                description: ReferenceGVK holds information about other resources
-                  in the cluster
-                properties:
-                  group:
-                    type: string
-                  kind:
-                    type: string
-                  name:
-                    type: string
-                  version:
-                    type: string
-                required:
-                - group
-                - kind
-                - name
-                - version
-                type: object
-              title:
-                description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-                  Important: Run "make" to regenerate code after modifying this file'
+              name:
                 type: string
             required:
-            - author
-            - pages
-            - publishDate
-            - title
+            - color
+            - name
             type: object
           status:
-            description: BookStatus defines the observed state of Book
+            description: PenStatus defines the observed state of Pen
             properties:
               available:
                 description: 'INSERT ADDITIONAL STATUS FIELD - define observed state

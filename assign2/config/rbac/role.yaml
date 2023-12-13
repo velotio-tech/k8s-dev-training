@@ -30,3 +30,29 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - pens.assgn2.com
+  resources:
+  - pens
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - pens.assgn2.com
+  resources:
+  - pens/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - pens.assgn2.com
+  resources:
+  - pens/status
+  verbs:
+  - get
+  - patch
+  - update

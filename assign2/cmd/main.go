@@ -32,8 +32,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	booksv1 "github.com/arijitnnayak/k8s-dev-training/api/v1"
-	"github.com/arijitnnayak/k8s-dev-training/internal/controller"
+	booksv1 "github.com/arijitnnayak/k8s-dev-training/api/batch/v1"
+	pensv1 "github.com/arijitnnayak/k8s-dev-training/api/pens/v1"
+	controller "github.com/arijitnnayak/k8s-dev-training/internal/controller/batch"
+	penscontroller "github.com/arijitnnayak/k8s-dev-training/internal/controller/pens"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -46,6 +48,7 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(booksv1.AddToScheme(scheme))
+	utilruntime.Must(pensv1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -94,6 +97,13 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Book")
+		os.Exit(1)
+	}
+	if err = (&penscontroller.PenReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Pen")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

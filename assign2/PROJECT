@@ -5,6 +5,7 @@
 domain: assgn2.com
 layout:
 - go.kubebuilder.io/v4
+multigroup: true
 projectName: assign2
 repo: github.com/arijitnnayak/k8s-dev-training
 resources:
@@ -16,5 +17,14 @@ resources:
   group: books
   kind: Book
   path: github.com/arijitnnayak/k8s-dev-training/api/v1
+  version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: assgn2.com
+  group: pens
+  kind: Pen
+  path: github.com/arijitnnayak/k8s-dev-training/api/pens/v1
   version: v1
 version: "3"

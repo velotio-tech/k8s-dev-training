@@ -31,6 +31,8 @@ type BookSpec struct {
 	Author      string      `json:"author" validate:"required"`
 	Pages       int32       `json:"pages" validate:"gte=1"`
 	PublishDate metav1.Time `json:"publishDate"`
+
+	Reference ReferenceGVK `json:"reference,omitempty"`
 }
 
 // BookStatus defines the observed state of Book
@@ -59,6 +61,14 @@ type BookList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Book `json:"items"`
+}
+
+// ReferenceGVK holds information about other resources in the cluster
+type ReferenceGVK struct {
+	Group   string `json:"group"`
+	Version string `json:"version"`
+	Kind    string `json:"kind"`
+	Name    string `json:"name"`
 }
 
 func init() {
