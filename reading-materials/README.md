@@ -4,7 +4,9 @@
 
 2. Using the client go framework [here](https://medium.com/programming-kubernetes/building-stuff-with-the-kubernetes-api-part-4-using-go-b1d0e3c1c899)
 
-3. Kubebuilder book [here](https://book.kubebuilder.io/cronjob-tutorial/cronjob-tutorial.html)
+3. Kubernetes Controller Resources [here](https://maelvls.dev/learning-kubernetes-controllers/)
+
+4. Kubebuilder book [here](https://book.kubebuilder.io/cronjob-tutorial/cronjob-tutorial.html)
 
 
 # Advance Topic
