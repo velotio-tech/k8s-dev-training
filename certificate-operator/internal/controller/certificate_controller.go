@@ -18,7 +18,14 @@ package controller
 
 import (
 	"context"
+	"fmt"
+	"github.com/jshiwamv/k8s-dev-training/certificate-operator/internal/certificate"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"strconv"
+	"strings"
 	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -53,24 +60,83 @@ func (r *CertificateReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	cert := &certv1.Certificate{}
 	err := r.Get(ctx, client.ObjectKey{Namespace: req.Namespace, Name: req.Name}, cert)
 	if err != nil {
-		return ctrl.Result{}, err
+		if errors.IsNotFound(err) {
+			return ctrl.Result{}, nil
+		}
+		return ctrl.Result{Requeue: true}, err
 	}
 
-	validDuration, err := cert.ParseValidFor()
+	validDuration, err := parseValidFor(cert.Spec.ValidFor)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
 	if time.Until(cert.Status.ExpiryDate.Time) <= 48*time.Hour {
-		r.updateStatus(ctx, &cert, certv1.ConditionRenewing, "Certificate is being renewed")
+		err = r.updateStatus(ctx, cert, certv1.ConditionRenewing, "Certificate is being renewed")
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+
 		// Perfrom Renewal
+		newCertPems, err := certificate.GenerateSelfSignedCertificate(validDuration)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+
+		err = r.createOrUpdateCertificate(ctx, cert, newCertPems)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+
 		cert.Status.ExpiryDate = metav1.NewTime(time.Now().Add(validDuration))
-		r.updateStatus(ctx, &cert, certv1.ConditionIssued, "Certificate successfully renewed")
+
+		err = r.updateStatus(ctx, cert, certv1.ConditionIssued, "Certificate successfully renewed")
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 	} else if time.Until(cert.Status.ExpiryDate.Time) <= 0 {
-		r.updateStatus(ctx, &cert, certv1.ConditionExpired, "Certificate is expired")
+		err = r.updateStatus(ctx, cert, certv1.ConditionExpired, "Certificate is expired")
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func (r *CertificateReconciler) createOrUpdateCertificate(ctx context.Context, cert *certv1.Certificate, certPEM *certificate.CertificatePEM) error {
+
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: cert.Namespace,
+			Name:      cert.Name,
+		},
+		Data: map[string][]byte{
+			"tls.crt": certPEM.CertPEM,
+			"tls.key": certPEM.KeyPEM,
+		},
+	}
+
+	if err := controllerutil.SetOwnerReference(cert, secret, r.Scheme); err != nil {
+		return err
+	}
+
+	err := r.Client.Patch(ctx, secret, client.MergeFrom(secret))
+	if err != nil {
+		return r.Client.Create(ctx, secret)
+	}
+	return nil
+}
+
+func (r *CertificateReconciler) updateStatus(ctx context.Context, cert *certv1.Certificate, condition certv1.CertificateConditionType, message string) error {
+	newCondition := certv1.CertificateCondition{
+		Type:               condition,
+		Message:            message,
+		LastTransitionTime: metav1.Now(),
+		Status:             metav1.ConditionTrue,
+	}
+	cert.Status.Conditions = append(cert.Status.Conditions, newCondition)
+	return r.Status().Update(ctx, cert)
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -78,4 +144,23 @@ func (r *CertificateReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&certv1.Certificate{}).
 		Complete(r)
+}
+
+func parseValidFor(validFor string) (time.Duration, error) {
+	if strings.HasSuffix(validFor, "d") {
+		days, err := strconv.Atoi(strings.TrimSuffix(validFor, "d"))
+		if err != nil {
+			return 0, err
+		}
+		return time.Duration(days) * 24 * time.Hour, nil
+	}
+
+	if strings.HasSuffix(validFor, "y") {
+		year, err := strconv.Atoi(strings.TrimSuffix(validFor, "y"))
+		if err != nil {
+			return 0, err
+		}
+		return time.Duration(year) * 365 * 24 * time.Hour, nil
+	}
+	return 0, fmt.Errorf("invalid value %s for validFor for field, should end with `d`(days) or `y`(years) e:g 1y, 20d ", validFor)
 }

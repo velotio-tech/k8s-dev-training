@@ -2,6 +2,7 @@ module github.com/jshiwamv/k8s-dev-training/certificate-operator
 
 go 1.22.0
 
+
 require (
 	github.com/onsi/ginkgo/v2 v2.19.0
 	github.com/onsi/gomega v1.33.1

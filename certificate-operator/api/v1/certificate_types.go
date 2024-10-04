@@ -76,7 +76,7 @@ type Certificate struct {
 	Status CertificateStatus `json:"status,omitempty"`
 }
 
-func (c *Certificate) ParseValidFor() (time.Duration, error) {
+func (c *Certificate) ParseValidSpec() (time.Duration, error) {
 	validFor := c.Spec.ValidFor
 	if strings.HasSuffix(validFor, "d") {
 		days, err := strconv.Atoi(strings.TrimSuffix(validFor, "d"))
