@@ -7,3 +7,5 @@ metadata:
   name: certificate-sample
 spec:
   # TODO(user): Add fields here
+  validFor: "6m"
+  domain: "test.shiwam.com"

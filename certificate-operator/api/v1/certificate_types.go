@@ -26,10 +26,15 @@ import (
 
 type CertificateConditionType string
 
+func (c CertificateConditionType) String() string {
+	return string(c)
+}
+
 const (
 	ConditionPending  CertificateConditionType = "Pending"
 	ConditionIssued   CertificateConditionType = "Issued"
 	ConditionRenewing CertificateConditionType = "Renewing"
+	ConditionRenewed  CertificateConditionType = "Renewed"
 	ConditionExpired  CertificateConditionType = "Expired"
 	ConditionFailed   CertificateConditionType = "Failed"
 )
@@ -42,26 +47,49 @@ type CertificateSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	Domain     string `json:"domain"`
-	ValidFor   string `json:"validFor"`
-	SecretName string `json:"secretName"`
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
+	Domain string `json:"domain"`
+
+	// +kubebuilder:validation:Pattern=`^\d+[dym]$`
+	// +kubebuilder:validation:Required
+	ValidFor string `json:"validFor"`
+}
+
+func (c *CertificateSpec) ParseValidFor() (time.Duration, error) {
+	if strings.HasSuffix(c.ValidFor, "d") {
+		days, err := strconv.Atoi(strings.TrimSuffix(c.ValidFor, "d"))
+		if err != nil {
+			return 0, err
+		}
+		return time.Duration(days) * 24 * time.Hour, nil
+	}
+
+	if strings.HasSuffix(c.ValidFor, "y") {
+		year, err := strconv.Atoi(strings.TrimSuffix(c.ValidFor, "y"))
+		if err != nil {
+			return 0, err
+		}
+		return time.Duration(year) * 365 * 24 * time.Hour, nil
+	}
+
+	if strings.HasSuffix(c.ValidFor, "m") {
+		minutes, err := strconv.Atoi(strings.TrimSuffix(c.ValidFor, "m"))
+		if err != nil {
+			return 0, err
+		}
+		return time.Duration(minutes) * time.Minute, nil
+	}
+	return 0, fmt.Errorf("invalid value %s for validFor for field, should end with `d`(days) or `y`(years) e:g 1y, 20d ", c.ValidFor)
 }
 
 // CertificateStatus defines the observed state of Certificate
 type CertificateStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Conditions []CertificateCondition `json:"conditions"`
-	ExpiryDate metav1.Time            `json:"expiryDate"`
-	RenewedAt  metav1.Time            `json:"renewedAt,omitempty"`
-}
-
-type CertificateCondition struct {
-	Type               CertificateConditionType `json:"type"`
-	Status             metav1.ConditionStatus   `json:"status"` // True, False, or Unknown
-	LastTransitionTime metav1.Time              `json:"lastTransitionTime,omitempty"`
-	Reason             string                   `json:"reason,omitempty"`
-	Message            string                   `json:"message,omitempty"`
+	Conditions []metav1.Condition `json:"conditions"`
+	ExpiryDate metav1.Time        `json:"expiryDate,omitempty"`
+	RenewedAt  metav1.Time        `json:"renewedAt,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -74,26 +102,6 @@ type Certificate struct {
 
 	Spec   CertificateSpec   `json:"spec,omitempty"`
 	Status CertificateStatus `json:"status,omitempty"`
-}
-
-func (c *Certificate) ParseValidSpec() (time.Duration, error) {
-	validFor := c.Spec.ValidFor
-	if strings.HasSuffix(validFor, "d") {
-		days, err := strconv.Atoi(strings.TrimSuffix(validFor, "d"))
-		if err != nil {
-			return 0, err
-		}
-		return time.Duration(days) * 24 * time.Hour, nil
-	}
-
-	if strings.HasSuffix(validFor, "y") {
-		year, err := strconv.Atoi(strings.TrimSuffix(validFor, "y"))
-		if err != nil {
-			return 0, err
-		}
-		return time.Duration(year) * 365 * 24 * time.Hour, nil
-	}
-	return 0, fmt.Errorf("invalid value %s for validFor for field, should end with `d`(days) or `y`(years) e:g 1y, 20d ", validFor)
 }
 
 // +kubebuilder:object:root=true

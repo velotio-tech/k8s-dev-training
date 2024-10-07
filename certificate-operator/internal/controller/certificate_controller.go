@@ -18,14 +18,12 @@ package controller
 
 import (
 	"context"
-	"fmt"
 	"github.com/jshiwamv/k8s-dev-training/certificate-operator/internal/certificate"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"strconv"
-	"strings"
 	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -56,56 +54,113 @@ type CertificateReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.19.0/pkg/reconcile
 func (r *CertificateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	log := log.FromContext(ctx)
 	cert := &certv1.Certificate{}
 	err := r.Get(ctx, client.ObjectKey{Namespace: req.Namespace, Name: req.Name}, cert)
 	if err != nil {
 		if errors.IsNotFound(err) {
+			log.Error(err, "Certificate resource not found")
 			return ctrl.Result{}, nil
 		}
-		return ctrl.Result{Requeue: true}, err
-	}
-
-	validDuration, err := parseValidFor(cert.Spec.ValidFor)
-	if err != nil {
+		log.Error(err, "Failed to fetch certificate")
 		return ctrl.Result{}, err
 	}
 
-	if time.Until(cert.Status.ExpiryDate.Time) <= 48*time.Hour {
-		err = r.updateStatus(ctx, cert, certv1.ConditionRenewing, "Certificate is being renewed")
+	validDuration, err := cert.Spec.ParseValidFor()
+	if err != nil {
+		log.Error(err, "Failed to parse ValidFor Field from spec")
+		return ctrl.Result{}, err
+	}
+	log.Info("Reconcilation Triggered ....")
+
+	if cert.Status.ExpiryDate.IsZero() {
+		log.Info("Creating new Cert ....")
+		err = r.updateStatus(ctx, req, metav1.Condition{
+			Type:    certv1.ConditionPending.String(),
+			Status:  metav1.ConditionTrue,
+			Reason:  "Reconciling",
+			Message: "Certificate creation is pending",
+		}, nil, nil)
 		if err != nil {
+			log.Error(err, "Failed to update certificate status", "ConditionType", certv1.ConditionPending.String())
 			return ctrl.Result{}, err
 		}
 
 		// Perfrom Renewal
-		newCertPems, err := certificate.GenerateSelfSignedCertificate(validDuration)
+		newCertPems, err := certificate.GenerateSelfSignedCertificate(validDuration, cert.Spec.Domain)
 		if err != nil {
+			log.Error(err, "Failed to generate self signed certificate pem values for certificate creation")
 			return ctrl.Result{}, err
 		}
 
 		err = r.createOrUpdateCertificate(ctx, cert, newCertPems)
 		if err != nil {
+			log.Error(err, "Failed to create certificate")
 			return ctrl.Result{}, err
 		}
 
-		cert.Status.ExpiryDate = metav1.NewTime(time.Now().Add(validDuration))
-
-		err = r.updateStatus(ctx, cert, certv1.ConditionIssued, "Certificate successfully renewed")
+		expiredAt := metav1.NewTime(time.Now().Add(validDuration))
+		err = r.updateStatus(ctx, req, metav1.Condition{
+			Type:    certv1.ConditionIssued.String(),
+			Status:  metav1.ConditionTrue,
+			Reason:  "Reconciling",
+			Message: "Certificate successfully issued",
+		}, &expiredAt, nil)
 		if err != nil {
+			log.Error(err, "Failed to update certificate status", "ConditionType", certv1.ConditionIssued.String())
 			return ctrl.Result{}, err
 		}
-	} else if time.Until(cert.Status.ExpiryDate.Time) <= 0 {
-		err = r.updateStatus(ctx, cert, certv1.ConditionExpired, "Certificate is expired")
+	} else if time.Until(cert.Status.ExpiryDate.Time) <= 5*time.Minute {
+		log.Info("Renewing expired cert ....")
+		err := r.Get(ctx, client.ObjectKey{Namespace: req.Namespace, Name: req.Name}, cert)
 		if err != nil {
+			log.Error(err, "Failed to re-fetch certificate")
+			return ctrl.Result{}, err
+		}
+
+		err = r.updateStatus(ctx, req, metav1.Condition{
+			Type:    certv1.ConditionRenewing.String(),
+			Status:  metav1.ConditionTrue,
+			Reason:  "Reconciling",
+			Message: "Certificate renewal in progress",
+		}, nil, nil)
+		if err != nil {
+			log.Error(err, "Failed to update certificate status", "ConditionType", certv1.ConditionRenewing.String())
+			return ctrl.Result{}, err
+		}
+
+		// Perfrom Renewal
+		newCertPems, err := certificate.GenerateSelfSignedCertificate(validDuration, cert.Spec.Domain)
+		if err != nil {
+			log.Error(err, "Failed to generate self signed certificate pem values for certificate renewal")
+			return ctrl.Result{}, err
+		}
+
+		err = r.createOrUpdateCertificate(ctx, cert, newCertPems)
+		if err != nil {
+			log.Error(err, "Failed to renew certificate")
+			return ctrl.Result{}, err
+		}
+
+		renewedAt := metav1.Now()
+		expiredAt := metav1.NewTime(time.Now().Add(validDuration))
+
+		err = r.updateStatus(ctx, req, metav1.Condition{
+			Type:    certv1.ConditionRenewed.String(),
+			Status:  metav1.ConditionTrue,
+			Reason:  "Reconciling",
+			Message: "Certificate successfully renewed",
+		}, &expiredAt, &renewedAt)
+		if err != nil {
+			log.Error(err, "Failed to update certificate status", "ConditionType", certv1.ConditionRenewed.String())
 			return ctrl.Result{}, err
 		}
 	}
 
-	return ctrl.Result{}, nil
+	return ctrl.Result{RequeueAfter: time.Minute * 1}, nil
 }
 
 func (r *CertificateReconciler) createOrUpdateCertificate(ctx context.Context, cert *certv1.Certificate, certPEM *certificate.CertificatePEM) error {
-
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: cert.Namespace,
@@ -128,14 +183,30 @@ func (r *CertificateReconciler) createOrUpdateCertificate(ctx context.Context, c
 	return nil
 }
 
-func (r *CertificateReconciler) updateStatus(ctx context.Context, cert *certv1.Certificate, condition certv1.CertificateConditionType, message string) error {
-	newCondition := certv1.CertificateCondition{
-		Type:               condition,
-		Message:            message,
-		LastTransitionTime: metav1.Now(),
-		Status:             metav1.ConditionTrue,
+func (r *CertificateReconciler) updateStatus(ctx context.Context, req ctrl.Request, condition metav1.Condition, expiredAt, renewedAt *metav1.Time) error {
+	cert := &certv1.Certificate{}
+
+	err := r.Get(ctx, client.ObjectKey{Namespace: req.Namespace, Name: req.Name}, cert)
+	if err != nil {
+		return err
 	}
-	cert.Status.Conditions = append(cert.Status.Conditions, newCondition)
+
+	newCondition := metav1.Condition{
+		Type:               condition.Type,
+		Message:            condition.Message,
+		LastTransitionTime: metav1.Now(),
+		Status:             condition.Status,
+		Reason:             condition.Reason,
+	}
+
+	if expiredAt != nil {
+		cert.Status.ExpiryDate = *expiredAt
+	}
+	if renewedAt != nil {
+		cert.Status.RenewedAt = *renewedAt
+	}
+
+	meta.SetStatusCondition(&cert.Status.Conditions, newCondition)
 	return r.Status().Update(ctx, cert)
 }
 
@@ -143,24 +214,6 @@ func (r *CertificateReconciler) updateStatus(ctx context.Context, cert *certv1.C
 func (r *CertificateReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&certv1.Certificate{}).
+		Owns(&corev1.Secret{}).
 		Complete(r)
-}
-
-func parseValidFor(validFor string) (time.Duration, error) {
-	if strings.HasSuffix(validFor, "d") {
-		days, err := strconv.Atoi(strings.TrimSuffix(validFor, "d"))
-		if err != nil {
-			return 0, err
-		}
-		return time.Duration(days) * 24 * time.Hour, nil
-	}
-
-	if strings.HasSuffix(validFor, "y") {
-		year, err := strconv.Atoi(strings.TrimSuffix(validFor, "y"))
-		if err != nil {
-			return 0, err
-		}
-		return time.Duration(year) * 365 * 24 * time.Hour, nil
-	}
-	return 0, fmt.Errorf("invalid value %s for validFor for field, should end with `d`(days) or `y`(years) e:g 1y, 20d ", validFor)
 }

@@ -15,7 +15,7 @@ type CertificatePEM struct {
 	KeyPEM  []byte
 }
 
-func GenerateSelfSignedCertificate(validFor time.Duration) (*CertificatePEM, error) {
+func GenerateSelfSignedCertificate(validFor time.Duration, domain string) (*CertificatePEM, error) {
 	// Generate a new private key
 	priv, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
@@ -42,6 +42,7 @@ func GenerateSelfSignedCertificate(validFor time.Duration) (*CertificatePEM, err
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
+		DNSNames:              []string{domain},
 	}
 
 	// Create the self-signed certificate
