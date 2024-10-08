@@ -199,6 +199,13 @@ func (r *CertificateReconciler) updateStatus(ctx context.Context, req ctrl.Reque
 		Reason:             condition.Reason,
 	}
 
+	for i := range cert.Status.Conditions {
+		cond := &cert.Status.Conditions[i]
+		if cond.Type != newCondition.Type {
+			cond.Status = metav1.ConditionFalse
+		}
+	}
+
 	if expiredAt != nil {
 		cert.Status.ExpiryDate = *expiredAt
 	}
