@@ -1,0 +1,12 @@
+apiVersion: cert.example.com/v1
+kind: Certificate
+metadata:
+  labels:
+    app.kubernetes.io/name: certificate-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: certificate-sample
+spec:
+  # TODO(user): Add fields here
+  validFor: "6m"
+  domain: "test.shiwam.com"
+
