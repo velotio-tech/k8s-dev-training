@@ -1,0 +1,11 @@
+apiVersion: books.assgn2.com/v1
+kind: Book
+metadata:
+  name: example-book
+spec:
+  author: "John Doe"
+  pages: 250
+  publishDate: "2023-12-01T00:00:00Z"
+  title: "Example Book Title"
+status:
+  available: true

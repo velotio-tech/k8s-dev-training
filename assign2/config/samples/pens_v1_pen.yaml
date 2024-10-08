@@ -1,0 +1,12 @@
+apiVersion: pens.assgn2.com/v1
+kind: Pen
+metadata:
+  labels:
+    app.kubernetes.io/name: pen
+    app.kubernetes.io/instance: pen-sample
+    app.kubernetes.io/part-of: assign2
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: assign2
+  name: pen-sample
+spec:
+  # TODO(user): Add fields here

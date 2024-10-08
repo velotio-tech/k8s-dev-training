@@ -1,0 +1,58 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - books.assgn2.com
+  resources:
+  - books
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - books.assgn2.com
+  resources:
+  - books/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - books.assgn2.com
+  resources:
+  - books/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - pens.assgn2.com
+  resources:
+  - pens
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - pens.assgn2.com
+  resources:
+  - pens/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - pens.assgn2.com
+  resources:
+  - pens/status
+  verbs:
+  - get
+  - patch
+  - update
