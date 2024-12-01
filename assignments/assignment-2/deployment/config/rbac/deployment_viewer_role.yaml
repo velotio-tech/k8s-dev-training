@@ -1,0 +1,27 @@
+# permissions for end users to view deployments.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: deployment-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: deployment
+    app.kubernetes.io/part-of: deployment
+    app.kubernetes.io/managed-by: kustomize
+  name: deployment-viewer-role
+rules:
+- apiGroups:
+  - apps.velotio.com
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps.velotio.com
+  resources:
+  - deployments/status
+  verbs:
+  - get
