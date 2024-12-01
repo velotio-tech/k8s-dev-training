@@ -1,0 +1,10 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: pod-asgn
+spec:
+  containers:
+  - name: pod-cont
+    image: psdudeman39/pod-image:latest
+    imagePullPolicy: Always
+  restartPolicy: Always
