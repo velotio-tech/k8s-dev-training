@@ -1,0 +1,7 @@
+domain: test.com
+repo: github.com/farkaskid/k8s-dev-training/assignment2
+resources:
+- group: qa
+  kind: CodeSanity
+  version: v1
+version: "2"
