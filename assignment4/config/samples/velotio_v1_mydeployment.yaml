@@ -1,0 +1,8 @@
+apiVersion: velotio.pankaj.io/v1
+kind: MyDeployment
+metadata:
+  name: mydeployment-sample
+spec:
+  # Add fields here
+  deploymentName: deployment-pankaj
+  replicas: 2
