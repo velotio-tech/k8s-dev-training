@@ -1,0 +1,24 @@
+# permissions for end users to edit mydeployments.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: mydeployment-editor-role
+rules:
+- apiGroups:
+  - velotio.pankaj.io
+  resources:
+  - mydeployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - velotio.pankaj.io
+  resources:
+  - mydeployments/status
+  verbs:
+  - get

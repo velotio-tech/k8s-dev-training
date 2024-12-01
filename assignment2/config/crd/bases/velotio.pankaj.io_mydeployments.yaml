@@ -1,0 +1,78 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.5
+  creationTimestamp: null
+  name: mydeployments.velotio.pankaj.io
+spec:
+  group: velotio.pankaj.io
+  names:
+    kind: MyDeployment
+    listKind: MyDeploymentList
+    plural: mydeployments
+    singular: mydeployment
+  scope: Namespaced
+  validation:
+    openAPIV3Schema:
+      description: MyDeployment is the Schema for the mydeployments API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: MyDeploymentSpec defines the desired state of MyDeployment
+          properties:
+            deploymentName:
+              description: DeploymentName is the name of the Deployment resource that
+                the controller should create. This field must be specified.
+              maxLength: 64
+              minLength: 3
+              type: string
+            replicas:
+              description: Number of desired pods. This is a pointer to distinguish
+                between explicit zero and not specified. Defaults to 1.
+              format: int32
+              type: integer
+            revisionHistoryLimit:
+              description: The number of old ReplicaSets to retain to allow rollback.
+                This is a pointer to distinguish between explicit zero and not specified.
+                Defaults to 10.
+              format: int32
+              type: integer
+          required:
+          - deploymentName
+          type: object
+        status:
+          description: MyDeploymentStatus defines the observed state of MyDeployment
+          properties:
+            readyReplicas:
+              description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                of cluster Important: Run "make" to regenerate code after modifying
+                this file Total number of ready pods targeted by this deployment.'
+              format: int32
+              type: integer
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
