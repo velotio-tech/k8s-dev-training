@@ -1,0 +1,22 @@
+apiVersion: velotio.pankaj.io/v1
+kind: MyJob
+metadata:
+  name: myjob-sample
+spec:
+  jobName: myjob
+  resourceType: job
+  template:
+    template:
+      spec:
+        containers:
+        - name: job-busybox
+          image: busybox
+          imagePullPolicy: IfNotPresent
+          command:
+          - /bin/sh
+          - -ec
+          -  sleep 1
+        restartPolicy: OnFailure
+
+  backoffLimit: 4
+
