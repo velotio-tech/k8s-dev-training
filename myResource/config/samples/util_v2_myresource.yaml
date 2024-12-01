@@ -1,0 +1,12 @@
+apiVersion: util.my.domain/v2
+kind: MyResource
+metadata:
+  name: myresource-sample
+spec:
+  # Add fields here
+  jobName: "sayWho"
+  command: "whoami"
+  schedule: "2021-19-29T07:12:00Z"
+
+status:
+  jobState: "Uninitialised"
