@@ -1,0 +1,20 @@
+domain: velotio.com
+layout:
+- go.kubebuilder.io/v4-alpha
+projectName: k8s-dev-training
+repo: velotio.com/database
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: velotio.com
+  group: db
+  kind: MongoDB
+  path: velotio.com/database/api/v1
+  version: v1
+  webhooks:
+    defaulting: true
+    validation: true
+    webhookVersion: v1
+version: "3"
