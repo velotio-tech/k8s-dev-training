@@ -1,0 +1,7 @@
+apiVersion: custdep.paravkaushal.dev/v1
+kind: CustomDeployment
+metadata:
+  name: sample-crd
+spec:
+  imageName: busybox
+  replicas: 3
