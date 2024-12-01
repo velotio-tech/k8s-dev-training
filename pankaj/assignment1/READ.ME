@@ -1,0 +1,5 @@
+### Notes and Findings
+
+* Usage of `NewYAMLOrJSONDecoder` from package `"k8s.io/apimachinery/pkg/util/yaml"` is a helpful tool to parse resources directly from yaml.
+
+* `client-go` requires you to create a client separately for each of your k8s resources to communicate to the API server, whereas `controller-runtime` library provides you a single dynamic client that can be used with all resources.
