@@ -1,0 +1,7 @@
+apiVersion: batch.velotio.io/v1
+kind: MyDeployment
+metadata:
+  name: mydeployment-sample
+spec:
+  deploymentName: test-deployment
+  replicas: 2
