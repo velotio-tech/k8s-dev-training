@@ -1,0 +1,16 @@
+apiVersion: webapp.velotio.ass2/v1
+kind: Appdeployer
+metadata:
+  labels:
+    app.kubernetes.io/name: appdeployer
+    app.kubernetes.io/instance: appdeployer-sample
+    app.kubernetes.io/part-of: assignment2-solution
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: assignment2-solution
+  name: appdeployer-sample
+spec:
+  name: "webapp-0"
+  replicas: 2
+  image: "nginx"
+  service-type: "NodePort"
+  port: 8080
