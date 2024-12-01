@@ -1,0 +1,33 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - webapp.velotio.ass2
+  resources:
+  - appdeployers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - webapp.velotio.ass2
+  resources:
+  - appdeployers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - webapp.velotio.ass2
+  resources:
+  - appdeployers/status
+  verbs:
+  - get
+  - patch
+  - update
