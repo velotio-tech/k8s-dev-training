@@ -1,0 +1,12 @@
+apiVersion: books.assgn2.com/v1
+kind: Book
+metadata:
+  labels:
+    app.kubernetes.io/name: book
+    app.kubernetes.io/instance: book-sample
+    app.kubernetes.io/part-of: assign2
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: assign2
+  name: book-sample
+spec:
+  # TODO(user): Add fields here
