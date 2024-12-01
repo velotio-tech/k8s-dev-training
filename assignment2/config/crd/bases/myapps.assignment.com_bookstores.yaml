@@ -1,0 +1,89 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.9.0
+  creationTimestamp: null
+  name: bookstores.myapps.assignment.com
+spec:
+  group: myapps.assignment.com
+  names:
+    kind: BookStore
+    listKind: BookStoreList
+    plural: bookstores
+    singular: bookstore
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: BookStore is the Schema for the bookstores API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: BookStoreSpec defines the desired state of BookStore
+            properties:
+              established:
+                description: Date of establishment of the book store (YYYY-MM-DD)
+                maxLength: 15
+                minLength: 4
+                pattern: ^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$
+                type: string
+              location:
+                description: Location of the book store
+                minLength: 3
+                type: string
+              name:
+                description: Name of the book store
+                maxLength: 15
+                minLength: 4
+                type: string
+              owner:
+                description: Owner of the book store
+                minLength: 3
+                type: string
+            required:
+            - established
+            - location
+            - name
+            - owner
+            type: object
+          status:
+            description: BookStoreStatus defines the observed state of BookStore
+            properties:
+              currentBooksCount:
+                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                  of cluster Important: Run "make" to regenerate code after modifying
+                  this file'
+                format: int32
+                minimum: 0
+                type: integer
+              lastBookAdded:
+                type: string
+              lastUpdateDate:
+                type: string
+              lastUpdateTime:
+                type: string
+            required:
+            - currentBooksCount
+            - lastBookAdded
+            - lastUpdateDate
+            - lastUpdateTime
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
