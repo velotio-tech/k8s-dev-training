@@ -1,0 +1,24 @@
+# permissions for end users to edit codesanities.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: codesanity-editor-role
+rules:
+- apiGroups:
+  - qa.test.com
+  resources:
+  - codesanities
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - qa.test.com
+  resources:
+  - codesanities/status
+  verbs:
+  - get
