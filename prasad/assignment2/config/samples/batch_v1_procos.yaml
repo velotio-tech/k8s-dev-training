@@ -1,0 +1,14 @@
+apiVersion: batch.my.domain/v1
+kind: ProcOS
+metadata:
+  name: procos-sample
+spec:
+  # Add fields here
+  cpu: 3
+  ram: "4G"
+  threadPolicy: Forbid
+  subresources:
+    status: {}
+
+status:
+  processState: Running
