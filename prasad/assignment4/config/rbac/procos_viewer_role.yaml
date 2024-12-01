@@ -1,0 +1,20 @@
+# permissions for end users to view procos.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: procos-viewer-role
+rules:
+- apiGroups:
+  - batch.my.domain
+  resources:
+  - procos
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - batch.my.domain
+  resources:
+  - procos/status
+  verbs:
+  - get

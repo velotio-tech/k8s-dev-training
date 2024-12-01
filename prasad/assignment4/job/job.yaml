@@ -1,0 +1,13 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: procos-job
+spec:
+  template:
+    spec:
+      containers:
+        - name: pi
+          image: busybox:latest
+          command: ["echo "print from job resource..."]
+        restartPolicy: Never
+  backoffLimit: 4
