@@ -1,0 +1,16 @@
+domain: velotio.com
+layout:
+- go.kubebuilder.io/v3
+projectName: deployment
+repo: velotio.com/deployment
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: velotio.com
+  group: apps
+  kind: Deployment
+  path: velotio.com/deployment/api/v1
+  version: v1
+version: "3"
