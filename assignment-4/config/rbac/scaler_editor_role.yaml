@@ -1,0 +1,24 @@
+# permissions for end users to edit scaler.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: scaler-editor-role
+rules:
+- apiGroups:
+  - batch.my.domain.com
+  resources:
+  - scaler
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - batch.my.domain.com
+  resources:
+  - scaler/status
+  verbs:
+  - get

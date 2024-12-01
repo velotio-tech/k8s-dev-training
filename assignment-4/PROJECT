@@ -1,0 +1,16 @@
+domain: my.domain.com
+layout:
+- go.kubebuilder.io/v3
+projectName: assignment-4
+repo: github.com/hatred09/k8s-dev-training/assignment-4
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: my.domain.com
+  group: batch
+  kind: Scaler
+  path: github.com/hatred09/k8s-dev-training/assignment-4/api/v1
+  version: v1
+version: "3"
