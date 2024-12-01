@@ -1,0 +1,31 @@
+# permissions for end users to edit appdeployers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: appdeployer-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: assignment2-solution
+    app.kubernetes.io/part-of: assignment2-solution
+    app.kubernetes.io/managed-by: kustomize
+  name: appdeployer-editor-role
+rules:
+- apiGroups:
+  - webapp.velotio.ass2
+  resources:
+  - appdeployers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - webapp.velotio.ass2
+  resources:
+  - appdeployers/status
+  verbs:
+  - get

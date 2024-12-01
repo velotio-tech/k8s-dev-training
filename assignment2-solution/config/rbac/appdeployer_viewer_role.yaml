@@ -1,0 +1,27 @@
+# permissions for end users to view appdeployers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: appdeployer-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: assignment2-solution
+    app.kubernetes.io/part-of: assignment2-solution
+    app.kubernetes.io/managed-by: kustomize
+  name: appdeployer-viewer-role
+rules:
+- apiGroups:
+  - webapp.velotio.ass2
+  resources:
+  - appdeployers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - webapp.velotio.ass2
+  resources:
+  - appdeployers/status
+  verbs:
+  - get

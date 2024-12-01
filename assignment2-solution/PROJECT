@@ -1,0 +1,16 @@
+domain: velotio.ass2
+layout:
+- go.kubebuilder.io/v3
+projectName: assignment2-solution
+repo: demo
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: velotio.ass2
+  group: webapp
+  kind: Appdeployer
+  path: demo/api/v1
+  version: v1
+version: "3"
