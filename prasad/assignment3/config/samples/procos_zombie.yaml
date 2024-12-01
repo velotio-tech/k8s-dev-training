@@ -1,0 +1,13 @@
+apiVersion: batch.my.domain/v1
+kind: ProcOS
+metadata:
+  name: procos-zombie
+spec:
+  # Add fields here
+  cpu: 1
+  ram: "2G"
+  threadPolicy: Replace
+
+status:
+  processState: InterruptableSleep
+  StartTime: "*/1 * * * *"
