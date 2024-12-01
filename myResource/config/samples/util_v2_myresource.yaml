@@ -1,0 +1,7 @@
+apiVersion: util.my.domain/v2
+kind: MyResource
+metadata:
+  name: myresource-sample
+spec:
+  # Add fields here
+  foo: bar
