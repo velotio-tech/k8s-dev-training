@@ -1,0 +1,12 @@
+apiVersion: secretcreator.example.com/v1
+kind: SecretCreator
+metadata:
+  name: secretcreator-test-0
+  namespace: test
+spec:
+  includeNamespaces:
+    - default
+  excludeNamespaces:
+    - test
+  secretName: demo-test
+  secretNamespace: test
