@@ -1,0 +1,10 @@
+apiVersion: infra.m1.io/v1
+kind: Redis
+metadata:
+  labels:
+    app.kubernetes.io/name: redis-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: redis-sample
+spec:
+  replicas: 2
+  version: 8.0-M02-alpine

@@ -1,0 +1,32 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - infra.m1.io
+  resources:
+  - redis
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infra.m1.io
+  resources:
+  - redis/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - infra.m1.io
+  resources:
+  - redis/status
+  verbs:
+  - get
+  - patch
+  - update
