@@ -1,0 +1,23 @@
+# permissions for end users to view resourcecreators.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: assignment-3
+    app.kubernetes.io/managed-by: kustomize
+  name: resourcecreator-viewer-role
+rules:
+- apiGroups:
+  - creator.m3.io
+  resources:
+  - resourcecreators
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - creator.m3.io
+  resources:
+  - resourcecreators/status
+  verbs:
+  - get

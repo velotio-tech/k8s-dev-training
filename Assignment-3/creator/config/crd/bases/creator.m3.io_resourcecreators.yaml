@@ -1,0 +1,127 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.16.4
+  name: resourcecreators.creator.m3.io
+spec:
+  group: creator.m3.io
+  names:
+    kind: ResourceCreator
+    listKind: ResourceCreatorList
+    plural: resourcecreators
+    singular: resourcecreator
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .metadata.creationTimestamp
+      name: CreatedAt
+      type: date
+    name: v1
+    schema:
+      openAPIV3Schema:
+        description: ResourceCreator is the Schema for the resourcecreators API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ResourceCreatorSpec defines the desired state of ResourceCreator.
+            properties:
+              resources:
+                description: Resources is a list of resources to be managed by this
+                  controller
+                items:
+                  description: ResourceSpec defines the desired resource to be managed
+                  properties:
+                    group:
+                      description: Group is the API group of the resource to manage
+                      type: string
+                    kind:
+                      description: Kind is the kind of the resource to manage
+                      type: string
+                    name:
+                      description: Name is the name of the resource to manage
+                      type: string
+                    spec:
+                      description: Spec is the spec of the resource to manage
+                      x-kubernetes-preserve-unknown-fields: true
+                    version:
+                      description: Version is the version of the resource to manage
+                      type: string
+                  required:
+                  - group
+                  - kind
+                  - name
+                  - spec
+                  - version
+                  type: object
+                minItems: 1
+                type: array
+            required:
+            - resources
+            type: object
+          status:
+            description: ResourceCreatorStatus defines the observed state of ResourceCreator.
+            properties:
+              lastUpdateTime:
+                description: LastUpdateTime is the last time the resource was updated
+                format: date-time
+                type: string
+              message:
+                description: Message contains additional information about the resource
+                  status
+                type: string
+              resource:
+                description: Resource contains the resource specification
+                properties:
+                  group:
+                    description: Group is the API group of the resource to manage
+                    type: string
+                  kind:
+                    description: Kind is the kind of the resource to manage
+                    type: string
+                  name:
+                    description: Name is the name of the resource to manage
+                    type: string
+                  spec:
+                    description: Spec is the spec of the resource to manage
+                    x-kubernetes-preserve-unknown-fields: true
+                  version:
+                    description: Version is the version of the resource to manage
+                    type: string
+                required:
+                - group
+                - kind
+                - name
+                - spec
+                - version
+                type: object
+              status:
+                description: Status indicates if the resource is created/updated/error
+                type: string
+            required:
+            - lastUpdateTime
+            - resource
+            - status
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

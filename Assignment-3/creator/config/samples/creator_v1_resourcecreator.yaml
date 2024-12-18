@@ -1,0 +1,35 @@
+apiVersion: creator.m3.io/v1
+kind: ResourceCreator
+metadata:
+  name: resourcecreator-sample
+spec:
+  resources:
+    - group: "apps"
+      version: "v1"
+      kind: "Deployment"
+      name: "redis-deployment"
+      spec:
+        replicas: 3
+        selector:
+          matchLabels:
+            app: redis
+        template:
+          metadata:
+            labels:
+              app: redis
+          spec:
+            containers:
+              - name: "redis"
+                image: "redis:latest"
+                ports:
+                  - containerPort: 6379
+    - group: ""
+      version: "v1"
+      kind: "Pod"
+      name: "nginx-pod"
+      spec:
+        containers:
+          - name: "nginx"
+            image: "nginx:latest"
+            ports:
+              - containerPort: 80
