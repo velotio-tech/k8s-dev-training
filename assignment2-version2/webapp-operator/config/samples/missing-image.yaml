@@ -1,0 +1,8 @@
+# Expect rejection: image is +kubebuilder:validation:Required and absent here
+apiVersion: apps.example.com/v1alpha1
+kind: WebApp
+metadata:
+  name: no-image
+spec:
+  replicas: 1
+  environment: Staging

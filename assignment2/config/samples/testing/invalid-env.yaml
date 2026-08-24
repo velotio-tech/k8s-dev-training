@@ -1,0 +1,9 @@
+apiVersion: apps.example.com/v1alpha1
+kind: AppService
+metadata:
+  name: invalid-env-app
+  namespace: default
+spec:
+  replicas: 2
+  environment: "production" # Invalid! Enum restricts to [dev, staging, prod]
+  image: "nginx:latest"

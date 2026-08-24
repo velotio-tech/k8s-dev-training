@@ -1,0 +1,9 @@
+apiVersion: apps.example.com/v1alpha1
+kind: AppService
+metadata:
+  name: invalid-replicas-app
+  namespace: default
+spec:
+  replicas: 15 # Exceeds Maximum=10 marker
+  environment: "dev"
+  image: "nginx:latest"

@@ -1,0 +1,9 @@
+# Expect rejection: "QA" is not in the Enum=Development;Staging;Production list
+apiVersion: apps.example.com/v1alpha1
+kind: WebApp
+metadata:
+  name: bad-environment
+spec:
+  image: nginx:alpine
+  replicas: 1
+  environment: QA

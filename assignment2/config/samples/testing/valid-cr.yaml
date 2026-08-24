@@ -1,0 +1,12 @@
+apiVersion: apps.example.com/v1alpha1
+kind: AppService
+metadata:
+  name: valid-app
+  namespace: default
+spec:
+  replicas: 3
+  environment: "staging"
+  image: "nginx:latest"
+  ports:
+    - 80
+    - 443

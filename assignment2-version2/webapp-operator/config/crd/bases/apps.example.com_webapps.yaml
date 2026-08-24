@@ -1,0 +1,116 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.21.0
+  name: webapps.apps.example.com
+spec:
+  group: apps.example.com
+  names:
+    kind: WebApp
+    listKind: WebAppList
+    plural: webapps
+    singular: webapp
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.phase
+      name: Phase
+      type: string
+    - jsonPath: .spec.replicas
+      name: Replicas
+      type: integer
+    - jsonPath: .spec.environment
+      name: Environment
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: WebApp is the Schema for the webapps API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: |-
+              WebAppSpec defines the desired state of WebApp.
+              Everything in here is written by the user (or a GitOps pipeline) and
+              read by the controller. Never written by the controller.
+            properties:
+              environment:
+                default: Development
+                description: Environment restricts which deployment tier this WebApp
+                  targets.
+                enum:
+                - Development
+                - Staging
+                - Production
+                type: string
+              image:
+                description: Image is the container image to deploy.
+                pattern: ^[a-zA-Z0-9._/-]+:[a-zA-Z0-9._-]+$
+                type: string
+              port:
+                default: 8080
+                description: Port is the container port the app listens on.
+                format: int32
+                maximum: 65535
+                minimum: 1
+                type: integer
+              replicas:
+                default: 1
+                description: Replicas is the desired pod count.
+                format: int32
+                maximum: 10
+                minimum: 1
+                type: integer
+            required:
+            - image
+            type: object
+          status:
+            description: |-
+              WebAppStatus defines the observed state of WebApp.
+              Everything in here is written by the controller, read by users/tools.
+              Never written directly by a user through normal apply.
+            properties:
+              availableReplicas:
+                description: AvailableReplicas is how many replicas are actually Ready
+                  right now.
+                format: int32
+                type: integer
+              lastUpdated:
+                description: LastUpdated records when the controller last touched
+                  this status.
+                type: string
+              message:
+                description: Message carries a free-text explanation, useful for `kubectl
+                  describe`.
+                type: string
+              phase:
+                description: Phase is a short human-readable state machine value.
+                enum:
+                - Pending
+                - Running
+                - Failed
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

@@ -1,0 +1,9 @@
+apiVersion: apps.example.com/v1alpha1
+kind: MultiTierApp
+metadata:
+  name: sample-multitier
+  namespace: default
+spec:
+  replicas: 2
+  targetNamespace: "default"
+  jobCommand: "echo 'Level 3 Job executed successfully'"

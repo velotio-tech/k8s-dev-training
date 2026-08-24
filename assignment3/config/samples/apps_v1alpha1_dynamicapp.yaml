@@ -1,0 +1,12 @@
+apiVersion: apps.example.com/v1alpha1
+kind: DynamicApp
+metadata:
+  name: demo-dynamic-app
+  namespace: default
+spec:
+  replicas: 2
+  targetResources:
+    - group: ""
+      version: "v1"
+      kind: "ConfigMap"
+      name: "dynamic-cm-sample"

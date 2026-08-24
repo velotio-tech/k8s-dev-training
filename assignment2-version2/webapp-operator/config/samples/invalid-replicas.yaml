@@ -1,0 +1,9 @@
+# Expect rejection: replicas violates Maximum=10
+apiVersion: apps.example.com/v1alpha1
+kind: WebApp
+metadata:
+  name: too-many-replicas
+spec:
+  image: nginx:alpine
+  replicas: 50
+  environment: Development

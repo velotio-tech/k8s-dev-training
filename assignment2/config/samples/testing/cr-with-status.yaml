@@ -1,0 +1,12 @@
+apiVersion: apps.example.com/v1alpha1
+kind: AppService
+metadata:
+  name: status-test-app
+  namespace: default
+spec:
+  replicas: 2
+  environment: "dev"
+  image: "nginx:alpine"
+status:
+  phase: "Running"
+  readyReplicas: 2

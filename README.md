@@ -1,6 +1,21 @@
+Assignment Submission - Ajay Raut1 [EMPID : 20144]
+
 # k8s-dev-training
 Training programme covering development exercise for kubernetes native development
 
+
+Assignment 1 (Foundations): Learn how to programmatically talk to Kubernetes using Go client libraries (client-go vs controller-runtime).
+
+Assignment 2 (Custom APIs): Learn how to extend Kubernetes by creating your own Custom Resource Definitions (CRDs) like MyDatabase or AppExporter using kubebuilder.
+
+Assignment 3 (Basic Controller): Write a controller loop ("Reconciler") that watches your CRD and automatically creates real K8s resources (like Deployments or Services) to match desired states.
+
+Assignment 4 (Advanced Controller): Handle multi-tiered resource hierarchies (Parent $\rightarrow$ Child $\rightarrow$ Grandchild), cross-resource watching using Field Indexers, and strict Namespace scoping.
+
+Assignment 5 (Low-Level Systems / Storage): Shift to virtual disk image tooling (qemu-img, qcow2, backing chains) often used in Kubernetes storage/data-mover operators.
+
+
+## Detailed Overview of the assignements :
 
 ## Assignment 1
 

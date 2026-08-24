@@ -1,0 +1,9 @@
+apiVersion: apps.example.com/v1alpha1
+kind: WebApp
+metadata:
+  name: demo-webapp
+spec:
+  image: nginx:alpine
+  replicas: 2
+  port: 8080
+  environment: Development
