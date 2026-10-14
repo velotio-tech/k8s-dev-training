@@ -1,0 +1,12 @@
+apiVersion: assignments.k8s-dev-training.com/v1
+kind: ResourceManager
+metadata:
+  labels:
+    app.kubernetes.io/name: assignment-4
+    app.kubernetes.io/managed-by: kustomize
+  name: resourcemanager-sample
+spec:
+  jobCommand:
+    - sh
+    - -c
+    - echo hello from the job

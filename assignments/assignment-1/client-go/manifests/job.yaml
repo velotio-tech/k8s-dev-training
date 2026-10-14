@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k8s-crud
+  namespace: default
+  labels:
+    app: k8s-crud
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      serviceAccountName: k8s-crud-sa
+      restartPolicy: Never
+      containers:
+        - name: k8s-crud
+          image: k8s-crud:dev
+          imagePullPolicy: Never
