@@ -1,0 +1,32 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - furniture.k8s-dev-training.com
+  resources:
+  - chairs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - furniture.k8s-dev-training.com
+  resources:
+  - chairs/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - furniture.k8s-dev-training.com
+  resources:
+  - chairs/status
+  verbs:
+  - get
+  - patch
+  - update

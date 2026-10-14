@@ -1,0 +1,29 @@
+# This rule is not used by the project assignment-3 itself.
+# It is provided to allow the cluster admin to help manage permissions for users.
+#
+# Grants read-only access to assignments.k8s-dev-training.com resources.
+# This role is intended for users who need visibility into these resources
+# without permissions to modify them. It is ideal for monitoring purposes and limited-access viewing.
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: assignment-3
+    app.kubernetes.io/managed-by: kustomize
+  name: resourcemanager-viewer-role
+rules:
+- apiGroups:
+  - assignments.k8s-dev-training.com
+  resources:
+  - resourcemanagers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - assignments.k8s-dev-training.com
+  resources:
+  - resourcemanagers/status
+  verbs:
+  - get

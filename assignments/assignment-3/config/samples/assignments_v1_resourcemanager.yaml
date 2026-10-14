@@ -1,0 +1,20 @@
+apiVersion: assignments.k8s-dev-training.com/v1
+kind: ResourceManager
+metadata:
+  labels:
+    app.kubernetes.io/name: assignment-3
+    app.kubernetes.io/managed-by: kustomize
+  name: resourcemanager-sample
+spec:
+  resources:
+    - apiVersion: v1
+      kind: ConfigMap
+      name: app-config
+      manifest:
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: app-config
+        data:
+          APP_ENV: development
+          LOG_LEVEL: debug

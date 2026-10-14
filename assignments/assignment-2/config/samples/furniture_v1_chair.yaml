@@ -1,0 +1,13 @@
+apiVersion: furniture.k8s-dev-training.com/v1
+kind: Chair
+metadata:
+  labels:
+    app.kubernetes.io/name: assignment-2
+    app.kubernetes.io/managed-by: kustomize
+  name: chair-sample-2
+spec:
+  colour: Red
+  weight: 1
+  legs: 3
+status:
+  broken: true

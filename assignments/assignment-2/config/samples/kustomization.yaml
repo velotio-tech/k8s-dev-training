@@ -1,0 +1,4 @@
+## Append samples of your project ##
+resources:
+- furniture_v1_chair.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples
